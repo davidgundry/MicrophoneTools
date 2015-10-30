@@ -54,7 +54,10 @@ public class MicrophoneController : MonoBehaviour {
         if (microphoneUI != null)
             prewarned = !microphoneUI.AskPermission();
         else
+        {
             Debug.Log("No UI detected, defulting to skip permission step");
+            prewarned = true;
+        }
 
 
         if (FindObjectOfType<AudioListener>() == null)
@@ -74,8 +77,6 @@ public class MicrophoneController : MonoBehaviour {
         audioSource.Stop();
         audioSource.loop = true;
         audioSource.outputAudioMixerGroup = audioMixer.FindMatchingGroups("Master")[0];
-
-        microphoneActive = false;
 	}
 
     /*
@@ -149,7 +150,6 @@ public class MicrophoneController : MonoBehaviour {
             }
             else if (microphoneDeviceSet)
             {
-                microphoneActive = true;
                 if (microphoneActive)
                     MicrophoneUpdate();
                 else
@@ -205,7 +205,7 @@ public class MicrophoneController : MonoBehaviour {
         gameObject.SendMessage("OnSoundEvent", SoundEvent.AudioEnd, SendMessageOptions.DontRequireReceiver);
     }
 
-    void OnApplicationPause(bool pauseStatus)
+   /* void OnApplicationPause(bool pauseStatus)
     {
         if ((microphoneDeviceSet) && (pauseStatus))
             StopListening();
@@ -230,7 +230,7 @@ public class MicrophoneController : MonoBehaviour {
     {
         if (!focus)
             StopListening();
-    }
+    }*/
 
     /*
      * Change the microphone to the given ID. Will fail if user authorisation has not been obtained or device doesn't exist.

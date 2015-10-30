@@ -227,7 +227,7 @@ public class MicrophoneRecorder : MonoBehaviour {
             Debug.LogError("MicrophoneRecorder: Attempted to write header but fileStream was null!");
     }
 
-    private string LocalFilePath(string filename)
+    public static string LocalFilePath(string filename)
     {
         if (Application.platform == RuntimePlatform.IPhonePlayer)
         {

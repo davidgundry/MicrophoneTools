@@ -3,6 +3,7 @@ using System.Collections;
 
 [RequireComponent(typeof(MicrophoneInput))]
 [RequireComponent(typeof(Camera))]
+[RequireComponent(typeof(GLDebug))]
 [AddComponentMenu("MicrophoneTools/SoundVisualiser")]
 public class SoundVisualiser : MonoBehaviour {
 
@@ -17,6 +18,8 @@ public class SoundVisualiser : MonoBehaviour {
     
     private float magnification;
     private bool audioPlaying;
+
+    private const int zPos = 5;
 
 	void Awake ()
     {
@@ -49,20 +52,20 @@ public class SoundVisualiser : MonoBehaviour {
                 else
                     color = Color.grey;
 
-                GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + 10), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + 10), color, 0, false);
+                GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + zPos), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + zPos), color, 0, true);
 
                 if ((pointFeatures[i] & (1 << 2)) != 0)
                 {
-                    GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + 10), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification + 10, transform.position.z + 10), Color.blue, 0, false);
+                    GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + zPos), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification + 10, transform.position.z + zPos), Color.blue, 0, true);
                 }
             }
             magnification = 20 / highest;
 
-            GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + 10), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + 10), Color.red, 0, false);
-            GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.deactivationMultiple * magnification, transform.position.z + 10), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.deactivationMultiple * magnification, transform.position.z + 10), Color.red, 0, false);
+            GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), Color.red, 0, true);
+            GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.deactivationMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.deactivationMultiple * magnification, transform.position.z + zPos), Color.red, 0, true);
 
             if (microphoneInput.InputDetected)
-                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + 10), new Vector3(transform.position.x - halfCameraWidth + visualiserPoints.Length, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + 10), Color.blue, 0, false);
+                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth + visualiserPoints.Length, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), Color.blue, 0, true);
 
             visualiserPosition++;
             if (visualiserPosition >= visualiserPoints.Length)

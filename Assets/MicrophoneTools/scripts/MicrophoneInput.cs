@@ -1,25 +1,39 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent(typeof(MicrophoneController))]
-//[RequireComponent(typeof(AudioSource))]
+[RequireComponent(typeof(MicrophoneBuffer))]
 [AddComponentMenu("MicrophoneTools/MicrophoneInput")]
 public class MicrophoneInput : MonoBehaviour {
 
+    private MicrophoneBuffer microphoneBuffer;
+
     public int syllables = 0;
     private bool syllable = false;
+    public bool Syllable
+    {
+        get
+        {
+            return syllable;
+        }
+    }
 
-    public const float activationMultiple = 1.5848931924611136f;  //2dB
+    public const float activationMultiple = 1.5848931924611136f;//0dB   filtered = 1.5848931924611136f;  //2dB
     public const float highActivationMultiple = 2f;
     public const float dipMultiple = 1.5848931924611136f; //2dB
-    public const float deactivationMultiple = 3f; //0dB
+    public const float deactivationMultiple = 1f; //0dB
     public const float presenceMultiple = 1f;
 
     private float peak = 0f;
     private float dip = 0f;
     private bool dipped = true;
 
-    private float noiseIntensity = 1f;
+    private int bufferReadPos = 0;
+    private float timeStep = 0.02f;
+    private double elapsedTime = 0;
+
+    private int inputDetectionTimeout = 0;
+
+    public float noiseIntensity = 1f;
     public float NoiseIntensity
     {
         get
@@ -27,7 +41,10 @@ public class MicrophoneInput : MonoBehaviour {
             return noiseIntensity;
         }
     }
+    public float standardDeviation;
+
     private int samplesSoFar = 0;
+    private int windowsSoFar = 0;
 
     private bool inputDetected;
     public bool InputDetected
@@ -46,54 +63,9 @@ public class MicrophoneInput : MonoBehaviour {
         }
     }
 
-    //private float[] spectrum;
-    //private const int sampleWindow = 128;
-    //private const int spectrumSize = 8192;
-    private bool audioPlaying = false;
-
-    private int inputDetectionTimeout = 0;
-
-    private float[] buffer;
-    private int bufferPos;
-    private int bufferReadPos;
-    private float timeStep = 0.02f;
-    private double elapsedTime = 0;
-
-	void Awake()
+    void Start()
     {
-        buffer = new float[44100];
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = 50;
-        //audioSource = this.GetComponent<AudioSource>();
-        //spectrum = new float[spectrumSize];
-	}
-
-    void OnSoundEvent(SoundEvent soundEvent)
-    {
-        switch (soundEvent)
-        {
-            case SoundEvent.AudioStart:
-                audioPlaying = true;
-                break;
-            case SoundEvent.AudioEnd:
-                audioPlaying = false;
-                break;
-        }
-    }
-
-    void OnAudioFilterRead(float[] data, int channels)
-    {
-        if (audioPlaying)
-            Buffer(data);
-    }
-
-    private void Buffer(float[] data)
-    {
-        for (int i = 0; i < data.Length; i++)
-        {
-            buffer[bufferPos] = data[i];
-            bufferPos = (bufferPos + 1) % buffer.Length;
-        }
+        microphoneBuffer = GetComponent<MicrophoneBuffer>();
     }
 
     void Update()
@@ -101,38 +73,20 @@ public class MicrophoneInput : MonoBehaviour {
         elapsedTime += AudioSettings.dspTime;
         if (elapsedTime >= timeStep)
         {
-            NewWindow();
-            elapsedTime = 0;
-        }
-    }
-
-    void NewWindow()
-    {
-        int newSamples = 0;
-        if (bufferReadPos > bufferPos)
-            newSamples = buffer.Length - bufferReadPos + bufferPos;
-        else
-            newSamples = bufferPos - bufferReadPos;
-
-        if (newSamples > 0)
-        {
-            samplesSoFar += newSamples;
-
-            float[] data = new float[newSamples];
-            int i = 0;
-            while ((bufferReadPos != bufferPos) && (i < newSamples))
-            {
-                data[i] = buffer[bufferReadPos];
-                i++;
-                bufferReadPos = (bufferReadPos + 1) % buffer.Length;
-            }
+            float[] data = NewWindow();
             float sumIntensity = 0;
             if (!SinglePolaity(data))
             {
                 sumIntensity = SumAbsIntensity(data);
-                level = sumIntensity / newSamples;
+                level = sumIntensity / data.Length;
                 if (!syllable)
-                    noiseIntensity += (sumIntensity - noiseIntensity * newSamples) / Mathf.Min(44100 * 4, samplesSoFar);
+                {
+                    standardDeviation = Mathf.Sqrt(
+                            (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar)-1)
+                            + Mathf.Pow(level - noiseIntensity,2))
+                        / Mathf.Min(20, windowsSoFar));
+                    noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
+                }
 
                 DetectNuclei();
                 DetectSyllables();
@@ -141,6 +95,34 @@ public class MicrophoneInput : MonoBehaviour {
             else
                 level = 0;
         }
+    }
+
+    float[] NewWindow()
+    {
+        windowsSoFar++;
+        float[] buffer = microphoneBuffer.Buffer;
+        elapsedTime = 0;
+        int newSamples = 0;
+        if (bufferReadPos > microphoneBuffer.BufferPos)
+            newSamples = buffer.Length - bufferReadPos + microphoneBuffer.BufferPos;
+        else
+            newSamples = microphoneBuffer.BufferPos - bufferReadPos;
+
+        if (newSamples > 0)
+        {
+            samplesSoFar += newSamples;
+
+            float[] data = new float[newSamples];
+            int i = 0;
+            while ((bufferReadPos != microphoneBuffer.BufferPos) && (i < newSamples))
+            {
+                data[i] = buffer[bufferReadPos];
+                i++;
+                bufferReadPos = (bufferReadPos + 1) % buffer.Length;
+            }
+            return data;
+        }
+        return new float[0];
     }
 
     void DetectPresence()
@@ -223,7 +205,7 @@ public class MicrophoneInput : MonoBehaviour {
         return sum;
     }
 
-    private static float SumIntensity(float[] data)
+    public static float SumIntensity(float[] data)
     {
         float sum = 0;
         for (int i = 0; i < data.Length; i++)
@@ -233,43 +215,19 @@ public class MicrophoneInput : MonoBehaviour {
 
     private static bool SinglePolaity(float[] data) //Poor-man's high-pass filter to remove v.low frequency noice
     {
-        bool polarity = (data[0] >= 0);
-        for (int i = 1; i < data.Length; i++)
-            if (polarity)
-            {
-                if (data[i] < 0)
-                    return false;
-            }
-            else
-                if (data[i] > 0)
-                    return false;
+        if (data.Length > 0)
+        {
+            bool polarity = (data[0] >= 0);
+            for (int i = 1; i < data.Length; i++)
+                if (polarity)
+                {
+                    if (data[i] < 0)
+                        return false;
+                }
+                else
+                    if (data[i] > 0)
+                        return false;
+        }
         return true;
     }
-
-   /* private float FrequencyLevel(float frequency)
-    {
-        int index = (int) Mathf.Round(((1 / 48000) * spectrumSize * 2) * frequency);
-        return spectrum[index];
-    }
-
-    private int FrequencyToIndex(float frequency)
-    {
-        return (int)Mathf.Round(((1 / 48000) * spectrumSize * 2) * frequency);
-    }
-
-    private float SumSpectrumArea(float low, float high)
-    {
-        int min = FrequencyToIndex(low);
-        int max = spectrum.Length-1;
-        if (high != 0)
-            max = FrequencyToIndex(high);
-
-        float sum = 0;
-        for (int i = min; i <= max; i++)
-        {
-            sum += spectrum[i];
-        }
-        return sum;
-    }*/
-
 }
