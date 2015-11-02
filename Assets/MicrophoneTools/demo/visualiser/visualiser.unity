@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
-  testClip: {fileID: 8300000, guid: 9cdfa045f7a37c44bbb8d242344abae1, type: 3}
+  testClip: {fileID: 8300000, guid: a999b82b688ce8a41b058dfc424b0a3a, type: 3}
   sampleRate: 44100
 --- !u!224 &1357141670
 RectTransform:
@@ -500,9 +500,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syllables: 0
-  noiseIntensity: .100000001
-  standardDeviation: .100000001
-  testClip: {fileID: 8300000, guid: 9cdfa045f7a37c44bbb8d242344abae1, type: 3}
   test: 1
 --- !u!20 &1357141672
 Camera:
