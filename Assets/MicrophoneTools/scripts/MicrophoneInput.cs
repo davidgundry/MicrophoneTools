@@ -17,7 +17,7 @@ public class MicrophoneInput : MonoBehaviour {
         }
     }
 
-    public const float activationMultiple = 1.5848931924611136f;//unfiltered = 1; //0dB   filtered = 1.5848931924611136f;  //2dB
+    public const float activationMultiple = 1;//1.5848931924611136f;//unfiltered = 1; //0dB   filtered = 1.5848931924611136f;  //2dB
     public const float highActivationMultiple = 1.5848931924611136f; //1.9952623149688797f; //3dB
     public const float dipMultiple = 1.5848931924611136f; //2dB
     public const float deactivationMultiple =  1.5848931924611136f; // 1f; //0dB
@@ -91,12 +91,15 @@ public class MicrophoneInput : MonoBehaviour {
         {
             if (i + samples.Length > testClip.samples)
                 samples = new float[testClip.samples - i];
+            windowsSoFar++;
+            samplesSoFar += samples.Length;
             testClip.GetData(samples, i);
             Algorithm(samples);
         }
 
         int totalS = syllables;
         syllables = startingSyllables;
+        Debug.Log(noiseIntensity + "," + startingNoiseIntensity);
         noiseIntensity = startingNoiseIntensity;
         standardDeviation = startingStandardDeviation;
         samplesSoFar = startingSamplesSoFar;
@@ -127,15 +130,15 @@ public class MicrophoneInput : MonoBehaviour {
             if (!syllable)
             {
                 standardDeviation = Mathf.Sqrt(
-                        (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar) - 1)
+                        (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20*4, windowsSoFar) - 1)
                         + Mathf.Pow(level - noiseIntensity, 2))
-                    / Mathf.Min(20, windowsSoFar));
+                    / Mathf.Min(20*4, windowsSoFar));
                 noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
             }
 
             DetectNuclei();
             DetectSyllables();
-            DetectPresence();
+            //DetectPresence();
         }
         else
             level = 0;
@@ -143,7 +146,6 @@ public class MicrophoneInput : MonoBehaviour {
 
     private float[] NewWindow()
     {
-        
         float[] buffer = microphoneBuffer.Buffer;
         
         int newSamples = 0;
@@ -205,7 +207,7 @@ public class MicrophoneInput : MonoBehaviour {
             peak = dip;
         }
 
-        if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity * activationMultiple))
+        if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + standardDeviation))
         {
             dipped = false;
             syllables++;
@@ -216,7 +218,7 @@ public class MicrophoneInput : MonoBehaviour {
 
     private void DetectSyllables()
     {
-        if (level > noiseIntensity + standardDeviation*2)//* highActivationMultiple))
+        if (level > noiseIntensity + standardDeviation)//* highActivationMultiple))
         {
             if (!syllable)
             {
@@ -225,7 +227,7 @@ public class MicrophoneInput : MonoBehaviour {
             }
         }
 
-        if (level < noiseIntensity + standardDeviation*2)//* deactivationMultiple))
+        if (level < noiseIntensity + standardDeviation)//* deactivationMultiple))
         {
             if (syllable)
             {
