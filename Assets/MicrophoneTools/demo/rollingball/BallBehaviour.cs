@@ -6,11 +6,14 @@ public class BallBehaviour : MonoBehaviour {
     public MicrophoneController microphoneController;
     public MicrophoneInput microphoneInput;
 
-    private float minXSpeed = 1f;
-    private float maxYVelocity = 1.5f;
+    private float minXSpeed = 0.2f;
+    private float maxXSpeed = 4;
+    private float maxYVelocity = 1f;
 
     private float distToGround;
     private Rigidbody2D rb;
+
+    private float forceTime = 0f;
 
 	// Use this for initialization
 	void Start () {
@@ -30,22 +33,46 @@ public class BallBehaviour : MonoBehaviour {
         //transform.position = new Vector3(transform.position.x + 0.07f, transform.position.y, 0);
         transform.rotation = new Quaternion();
         //if (microphoneInput.Syllable)
-        //    rb.AddForce(new Vector2(0, 30f) * Time.deltaTime * 100);
-        if (transform.position.y < -10)
+        //   rb.AddForce(new Vector2(100, 0) * Time.deltaTime);
+        if (transform.position.y < -1)
             transform.position = new Vector3(0, 1, 0);
-        rb.velocity = new Vector3(Mathf.Max(rb.velocity.x,minXSpeed), Mathf.Min(rb.velocity.y,maxYVelocity), 0);
+        
+        if (forceTime > 0)
+        {
+            if (forceTime > 0.5f)
+                rb.AddForce(new Vector2(1f, 0) * 300 * Time.deltaTime);
+            else
+                rb.AddForce(new Vector2(1f, 0) * 200 * Time.deltaTime);
+            forceTime -= Time.deltaTime;
+        }
+
+        if (Input.GetKeyDown("space"))
+            rb.AddForce(new Vector2(10f, 0) * 100 * Time.deltaTime);
+
+        float density = 10;
+        float angle = 1;// +Mathf.Abs(Mathf.Atan2(rb.velocity.y, rb.velocity.x));
+        Debug.Log(angle);
+        float ad = rb.velocity.magnitude * density;
+        float vv = rb.velocity.magnitude * angle;
+        float lift = ad * vv;
+
+        rb.AddForce(new Vector2(0, lift) * Time.deltaTime);
+
+        transform.position = new Vector3(transform.position.x, Mathf.Min(transform.position.y,1.5f), transform.position.z);
+
+        rb.velocity = new Vector3(Mathf.Min(Mathf.Max(rb.velocity.x, minXSpeed),maxXSpeed), Mathf.Min(rb.velocity.y, maxYVelocity), 0);
 	}
 
     void OnSoundEvent(SoundEvent se)
     {
-        //if (se == SoundEvent.SyllablePeak)
-        //    Jump();
+        if (se == SoundEvent.SyllablePeak)
+            Jump();
             
     }
 
     public void Jump()
     {
-        rb.AddForce(new Vector2(0.1f, 2.2f) * Time.deltaTime * 100, ForceMode2D.Impulse);
+        forceTime = 1f;
     }
 
 }
