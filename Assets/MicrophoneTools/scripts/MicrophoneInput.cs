@@ -91,6 +91,9 @@ public class MicrophoneInput : MonoBehaviour {
         {
             if (i + samples.Length > testClip.samples)
                 samples = new float[testClip.samples - i];
+            else if (samples.Length != 2048)
+                samples = new float[2048];
+
             windowsSoFar++;
             samplesSoFar += samples.Length;
             testClip.GetData(samples, i);
@@ -99,7 +102,6 @@ public class MicrophoneInput : MonoBehaviour {
 
         int totalS = syllables;
         syllables = startingSyllables;
-        Debug.Log(noiseIntensity + "," + startingNoiseIntensity);
         noiseIntensity = startingNoiseIntensity;
         standardDeviation = startingStandardDeviation;
         samplesSoFar = startingSamplesSoFar;
@@ -130,9 +132,9 @@ public class MicrophoneInput : MonoBehaviour {
             if (!syllable)
             {
                 standardDeviation = Mathf.Sqrt(
-                        (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20*4, windowsSoFar) - 1)
+                        (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar) - 1)
                         + Mathf.Pow(level - noiseIntensity, 2))
-                    / Mathf.Min(20*4, windowsSoFar));
+                    / Mathf.Min(20, windowsSoFar));
                 noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
             }
 
