@@ -163,8 +163,9 @@ public class MicrophoneInput : MonoBehaviour {
             }
 
             DetectNuclei();
-            DetectSyllables();
-            //DetectPresence();
+            if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
+                DetectSyllables();
+            DetectPresence();
         }
         else
             level = 0;
