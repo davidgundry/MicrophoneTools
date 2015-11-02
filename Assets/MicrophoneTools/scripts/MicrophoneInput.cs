@@ -33,7 +33,7 @@ public class MicrophoneInput : MonoBehaviour {
 
     private int inputDetectionTimeout = 0;
 
-    public float noiseIntensity = 0.1f;
+    private float noiseIntensity;
     public float NoiseIntensity
     {
         get
@@ -41,7 +41,14 @@ public class MicrophoneInput : MonoBehaviour {
             return noiseIntensity;
         }
     }
-    public float standardDeviation;
+    private float standardDeviation;
+    public float StandardDeviation
+    {
+        get
+        {
+            return standardDeviation;
+        }
+    }
 
     private int samplesSoFar = 0;
     private int windowsSoFar = 0;
@@ -63,36 +70,44 @@ public class MicrophoneInput : MonoBehaviour {
         }
     }
 
-    public AudioClip testClip;
     public bool test;
 
     void Start()
     {
         microphoneBuffer = GetComponent<MicrophoneBuffer>();
-        if (test)
-            Debug.Log("Syllables: " + TestHarness());
     }
 
-    int TestHarness()
+    private int TestHarness()
     {
         int startingSyllables = syllables;
         syllables = 0;
+        bool startingSyllable = syllable;
+        syllable = false;
         float startingNoiseIntensity = noiseIntensity;
+        noiseIntensity = 0;
         float startingStandardDeviation = standardDeviation;
+        standardDeviation = 0;
         int startingSamplesSoFar = samplesSoFar;
         samplesSoFar = 0;
         int startingWindowsSoFar = windowsSoFar;
         windowsSoFar = 0;
+        float startingPeak = peak;
+        peak = 0;
+        float startingDip = dip;
+        dip = 0;
+        bool startingDipped = dipped;
+        dipped = true;
 
-
-        float[] samples = new float[2048];
+        AudioClip testClip = GetComponent<AudioSource>().clip;
+        int length = (int) (GetComponent<MicrophoneController>().SampleRate * timeStep);
+        float[] samples = new float[length];
 
         for (int i = 0; i < testClip.samples; i += samples.Length)
         {
             if (i + samples.Length > testClip.samples)
                 samples = new float[testClip.samples - i];
-            else if (samples.Length != 2048)
-                samples = new float[2048];
+            else if (samples.Length != length)
+                samples = new float[length];
 
             windowsSoFar++;
             samplesSoFar += samples.Length;
@@ -106,6 +121,9 @@ public class MicrophoneInput : MonoBehaviour {
         standardDeviation = startingStandardDeviation;
         samplesSoFar = startingSamplesSoFar;
         windowsSoFar = startingWindowsSoFar;
+        peak = startingPeak;
+        dip = startingDip;
+        dipped = startingDipped;
 
         return totalS;
     }
@@ -113,6 +131,12 @@ public class MicrophoneInput : MonoBehaviour {
 
     void Update()
     {
+        if (test)
+        {
+            Debug.Log("Syllables: " + TestHarness());
+            test = false;
+        }
+
         elapsedTime += AudioSettings.dspTime;
         if (elapsedTime > timeStep)
         {
