@@ -273,7 +273,7 @@ CircleCollider2D:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 975968653}
   m_Enabled: 1
-  m_Material: {fileID: 6200000, guid: 01ea4167ba4bd60459086fad6e8aed00, type: 2}
+  m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_Offset: {x: 0, y: 0}
@@ -662,7 +662,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 2
+  orthographic size: 3
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

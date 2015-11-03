@@ -6,7 +6,7 @@ public class BallBehaviour : MonoBehaviour {
     public MicrophoneController microphoneController;
     public MicrophoneInput microphoneInput;
 
-    private float minXSpeed = 0.2f;
+    private float minXSpeed = 0.5f;
     private float maxXSpeed = 4;
     private float maxYVelocity = 1f;
 
@@ -37,28 +37,27 @@ public class BallBehaviour : MonoBehaviour {
         if (transform.position.y < -1)
             transform.position = new Vector3(0, 1, 0);
         
+        float density = 10;
+        float angle = 10;// +Mathf.Abs(Mathf.Atan2(rb.velocity.y, rb.velocity.x));
+        float ad = rb.velocity.magnitude * density;
+        float vv = rb.velocity.magnitude * angle;
+        float lift = ad * vv * (1/transform.position.y);
+
+        rb.AddForce(new Vector2(0, lift) * Time.deltaTime);
+
         if (forceTime > 0)
         {
-            if (forceTime > 0.5f)
-                rb.AddForce(new Vector2(1f, 0) * 300 * Time.deltaTime);
-            else
+            if (forceTime > 0.1f)
                 rb.AddForce(new Vector2(1f, 0) * 200 * Time.deltaTime);
+            else
+                rb.AddForce(new Vector2(1f, 0) * 100 * Time.deltaTime);
             forceTime -= Time.deltaTime;
         }
 
         if (Input.GetKeyDown("space"))
             rb.AddForce(new Vector2(10f, 0) * 100 * Time.deltaTime);
 
-        float density = 10;
-        float angle = 1;// +Mathf.Abs(Mathf.Atan2(rb.velocity.y, rb.velocity.x));
-        Debug.Log(angle);
-        float ad = rb.velocity.magnitude * density;
-        float vv = rb.velocity.magnitude * angle;
-        float lift = ad * vv;
-
-        rb.AddForce(new Vector2(0, lift) * Time.deltaTime);
-
-        transform.position = new Vector3(transform.position.x, Mathf.Min(transform.position.y,1.5f), transform.position.z);
+        transform.position = new Vector3(transform.position.x, Mathf.Min(transform.position.y,2), transform.position.z);
 
         rb.velocity = new Vector3(Mathf.Min(Mathf.Max(rb.velocity.x, minXSpeed),maxXSpeed), Mathf.Min(rb.velocity.y, maxYVelocity), 0);
 	}
@@ -72,7 +71,7 @@ public class BallBehaviour : MonoBehaviour {
 
     public void Jump()
     {
-        forceTime = 1f;
+        forceTime = 0.2f;
     }
 
 }
