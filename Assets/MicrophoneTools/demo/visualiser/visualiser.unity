@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
-  testClip: {fileID: 8300000, guid: a999b82b688ce8a41b058dfc424b0a3a, type: 3}
+  testClip: {fileID: 0}
   sampleRate: 44100
 --- !u!224 &1357141670
 RectTransform:
@@ -500,7 +500,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syllables: 0
-  test: 1
+  test: 0
 --- !u!20 &1357141672
 Camera:
   m_ObjectHideFlags: 0

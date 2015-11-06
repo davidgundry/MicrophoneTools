@@ -6,13 +6,13 @@ public class TypedInputBehaviour : MonoBehaviour {
 
     private InputField inf;
     public Transform player;
-    private BallBehaviour ballBehaviour;
+    private GameController gameController;
     public Transform popTextPrefab;
 
 	// Use this for initialization
 	void Start () {
         inf = GetComponent<InputField>();
-        ballBehaviour = player.GetComponent<BallBehaviour>();
+        gameController = player.GetComponent<GameController>();
 	}
 	
 	// Update is called once per frame
@@ -22,7 +22,7 @@ public class TypedInputBehaviour : MonoBehaviour {
             {
                 if (inf.text != " ")
                 {
-                    ballBehaviour.Jump();
+                    gameController.InputEvent();
                     CreatePopText();
                 }
                 inf.text = "";
@@ -34,7 +34,7 @@ public class TypedInputBehaviour : MonoBehaviour {
                 {
                     if (inf.text != "")
                     {
-                        ballBehaviour.Jump();
+                        gameController.InputEvent();
                         CreatePopText();
                     }
                     inf.text = "";
