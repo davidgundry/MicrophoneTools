@@ -38,16 +38,22 @@ public class GameController : MonoBehaviour {
         if ((playerBehaviour.PlayerState == PlayerState.Flying) || (playerBehaviour.PlayerState == PlayerState.TakingOff) || (playerBehaviour.PlayerState == PlayerState.Landing))
             distance = player.position.x - lastTakeoffX;
 
-        distanceText.text = (int) (distance*5) + " m";// (int)(player.position.x * 5) + "m";
+        distanceText.text = (int) (distance*5) + " m";
         pointsText.text = ""+points;
-        speedText.text = (int) (playerBehaviour.Speed()*5) + " m/s";// (int)(player.position.x * 5) + "m";
+        speedText.text = (int) (playerBehaviour.Speed()*5) + " m/s";
+
+
+        //HumInput();
+
+        if (Input.GetKey("space"))
+            InputEvent();
 	}
 
     private void AddRunway(float offsetX)
     {
-        Transform question = Instantiate(questionTextPrefab);
-        question.position = new Vector3(player.position.x + offsetX+1, 2, 1);
-        question.GetComponent<TextMesh>().text = "How are you today?";
+        //Transform question = Instantiate(questionTextPrefab);
+        //question.position = new Vector3(player.position.x + offsetX+1, 2, 1);
+        //question.GetComponent<TextMesh>().text = "How are you today?";
 
         Transform runway = Instantiate(runwayPrefab);
         runway.position = new Vector3(player.position.x + offsetX, 0, 0);
@@ -56,11 +62,19 @@ public class GameController : MonoBehaviour {
     public void TakeOff()
     {
         lastTakeoffX = player.position.x;
+        Debug.Log("Takeoff!");
     }
 
     public void EnterRunway()
     {
+        lastTakeoffX = player.position.x;
         distance = 0;
+        Debug.Log("Enter Runway!");
+    }
+
+    public void FlyingStart()
+    {
+        Debug.Log("Flying Start!");
     }
 
     public void TouchDown()
@@ -68,6 +82,7 @@ public class GameController : MonoBehaviour {
         distance = player.position.x - lastTakeoffX;
         points += (int) distance;
         AddRunway(5);
+        Debug.Log("Touch Down!");
     }
 
     public void InputEvent()
@@ -78,6 +93,13 @@ public class GameController : MonoBehaviour {
     void OnSoundEvent(SoundEvent se)
     {
         if (se == SoundEvent.SyllablePeak)
+            InputEvent();
+    }
+
+    private void HumInput()
+    {
+        //if (microphoneInput.Level > microphoneInput.NoiseIntensity)
+        if (microphoneInput.InputDetected)
             InputEvent();
     }
 

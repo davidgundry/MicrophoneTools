@@ -98,16 +98,16 @@ public class PlayerBehaviour : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.transform.tag == "Runway")
+        if (other.transform.tag == "RunwayStart")
         {
-            if (playerState != PlayerState.TakingOff)
-            {
-                gameController.EnterRunway();
-                playerState = PlayerState.TakingOff;
-            }
+            gameController.EnterRunway();
+            playerState = PlayerState.TakingOff;
         }
-        if (other.transform.tag == "FlyingStart")
+        else if (other.transform.tag == "FlyingStart")
+        {
+            gameController.FlyingStart();
             playerState = PlayerState.Flying;
+        }
     }
 
     private void AddPassiveForces()
