@@ -239,12 +239,14 @@ public class MicrophoneRecorder : MonoBehaviour {
         {
             string path = Application.persistentDataPath;
             path = path.Substring(0, path.LastIndexOf('/'));
+            Debug.Log( Path.Combine(path, filename));
             return Path.Combine(path, filename);
         }
         else
         {
             string path = Application.dataPath;
             path = path.Substring(0, path.LastIndexOf('/'));
+            Debug.Log(Path.Combine(path, filename));
             return Path.Combine(path, filename);
         }
     }

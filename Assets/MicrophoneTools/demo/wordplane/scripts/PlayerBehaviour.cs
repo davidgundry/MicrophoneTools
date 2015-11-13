@@ -5,6 +5,7 @@ public enum PlayerState
 {
     Landing,
     OnGround,
+    OnRunway,
     TakingOff,
     Flying
 }
@@ -12,20 +13,32 @@ public enum PlayerState
 public class PlayerBehaviour : MonoBehaviour {
 
     // Bounds
-    private float minXSpeed = 1f; //0.5f
-    private float maxXSpeed = 8;
+    private float minXSpeed = 1.5f; //0.5f
     private float maxYVelocity = 1f;
     private float maxY = 6f;
 
     // For aeroplane physics
-    private const float density = 10;
-    private const float angle = 10;
+    private const float density = 6;
+    private const float angle = 6;
 
     private Rigidbody2D rb;
 
     private float forceTime = 0f;
 
-    private PlayerState playerState;
+    public float speedMultiplier = 1;
+    public float SpeedMultiplier
+    {
+        get
+        {
+            return speedMultiplier;
+        }
+        set
+        {
+            speedMultiplier = value;
+        }
+    }
+
+    public PlayerState playerState;
     public PlayerState PlayerState
     {
         get
@@ -52,7 +65,8 @@ public class PlayerBehaviour : MonoBehaviour {
 	
 	void Update ()
     {
-        transform.rotation = new Quaternion();
+        transform.rotation = Quaternion.LookRotation(rb.velocity);
+        transform.Rotate(Vector3.up, -90);
 
         switch (playerState)
         {
@@ -71,10 +85,16 @@ public class PlayerBehaviour : MonoBehaviour {
                 AddPassiveForces();
                 break;
 
+            case PlayerState.OnRunway:
+                AddActiveForces();
+                //AddPassiveForces();
+                break;
+
             case PlayerState.TakingOff:
                 // Player given control and may take off
                 AddActiveForces();
                 AddPassiveForces();
+
                 if ((!takenOff) && (transform.position.y > 0.2f))
                 {
                     takenOff = true;
@@ -86,7 +106,7 @@ public class PlayerBehaviour : MonoBehaviour {
                 // Player flying, if they get too low, they land
                 AddActiveForces();
                 AddPassiveForces();
-                if (transform.position.y < 1f)
+                if (transform.position.y < 0.5f)
                     playerState = PlayerState.Landing;
                 break;
 
@@ -98,9 +118,14 @@ public class PlayerBehaviour : MonoBehaviour {
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.transform.tag == "RunwayStart")
+        if (other.transform.tag == "EnterRunway")
         {
             gameController.EnterRunway();
+            playerState = PlayerState.OnRunway;
+        }
+        else if (other.transform.tag == "RunwayCheckpoint")
+        {
+            gameController.RunwayCheckpoint();
             playerState = PlayerState.TakingOff;
         }
         else if (other.transform.tag == "FlyingStart")
@@ -108,12 +133,17 @@ public class PlayerBehaviour : MonoBehaviour {
             gameController.FlyingStart();
             playerState = PlayerState.Flying;
         }
+        else if (other.transform.tag == "Coin")
+        {
+            Destroy(other.gameObject);
+            gameController.AddPoints(1);
+        }
     }
 
     private void AddPassiveForces()
     {
-        float ad = rb.velocity.magnitude * density;
-        float vv = rb.velocity.magnitude * angle;
+        float ad = (rb.velocity.magnitude / speedMultiplier) * density;
+        float vv = (rb.velocity.magnitude / speedMultiplier) * angle;
         float lift = ad * vv * (1 / (transform.position.y+1));
         rb.AddForce(new Vector2(0, lift) * Time.deltaTime);
     }
@@ -123,9 +153,9 @@ public class PlayerBehaviour : MonoBehaviour {
         if (forceTime > 0)
         {
             if (forceTime > 0.1f)
-                rb.AddForce(new Vector2(1f, 0) * 220 * Time.deltaTime);
+                rb.AddForce(new Vector2(1f, 0) * 500 * speedMultiplier * Time.deltaTime);
             else
-                rb.AddForce(new Vector2(1f, 0) * 100 * Time.deltaTime);
+                rb.AddForce(new Vector2(1f, 0) * 350 * speedMultiplier * Time.deltaTime);
             forceTime -= Time.deltaTime;
         }
 
@@ -136,13 +166,13 @@ public class PlayerBehaviour : MonoBehaviour {
     private void ApplyPhysicalBounds()
     {
         transform.position = new Vector3(transform.position.x, Mathf.Min(transform.position.y, maxY), transform.position.z);
-        rb.velocity = new Vector3(Mathf.Min(Mathf.Max(rb.velocity.x, minXSpeed), maxXSpeed), Mathf.Min(rb.velocity.y, maxYVelocity), 0);
+        rb.velocity = new Vector3(Mathf.Max(rb.velocity.x, minXSpeed*speedMultiplier), Mathf.Min(rb.velocity.y, maxYVelocity), 0);
     }
 
 
     public void Thrust()
     {
-        forceTime = 0.2f;
+        forceTime = 0.25f;
     }
 
 }

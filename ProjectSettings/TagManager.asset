@@ -7,6 +7,9 @@ TagManager:
   - Runway
   - FlyingStart
   - EnterRunway
+  - RunwayCheckpoint
+  - Coin
+  - Listener
   layers:
   - Default
   - TransparentFX

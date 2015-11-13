@@ -5,6 +5,7 @@ public class FollowCamera : MonoBehaviour {
 
     public Transform target;
     public Vector3 offset;
+    public float minY;
 
     void Start()
     {
@@ -12,6 +13,6 @@ public class FollowCamera : MonoBehaviour {
     }
     void Update()
     {
-        transform.position = new Vector3(target.position.x + offset.x, target.position.y+offset.y, target.position.z+offset.z); 
+        transform.position = new Vector3(target.position.x + offset.x, Mathf.Max(target.position.y+offset.y,minY), target.position.z+offset.z); 
     }
 }

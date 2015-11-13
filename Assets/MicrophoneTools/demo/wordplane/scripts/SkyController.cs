@@ -7,6 +7,8 @@ public class SkyController : MonoBehaviour {
     public int cloudCount = 1;
     public Transform cloudPrefab;
 
+    public Transform camera;
+
     private Transform[] clouds;
 
 	// Use this for initialization
@@ -24,6 +26,10 @@ public class SkyController : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-	    
+        for (int i = 0; i < cloudCount; i++)
+        {
+            if (clouds[i].position.x < camera.position.x-30)
+                clouds[i].position = camera.position + new Vector3(Random.Range(20, 30), Random.Range(2, 15), Random.Range(5, 20));
+        }
 	}
 }
