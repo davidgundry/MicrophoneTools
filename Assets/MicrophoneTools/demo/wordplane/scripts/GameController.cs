@@ -18,14 +18,13 @@ public class GameController : MonoBehaviour {
 
     private float lastTakeoffX;
     
-    //public Transform questionTextPrefab;
     public Transform runwayPrefab;
     public Transform coinPrefab;
 
     private StimulusScript stimulusScript;
 
-    private MicrophoneController microphoneController;
-    private MicrophoneInput microphoneInput;
+    private MicTools.MicrophoneController microphoneController;
+    private MicTools.MicrophoneInput microphoneInput;
 
 	void Start ()
     {
@@ -33,8 +32,8 @@ public class GameController : MonoBehaviour {
 
         stimulusScript = GameObject.Find("Stimulus").GetComponent<StimulusScript>();
 
-        microphoneController = GetComponent<MicrophoneController>();
-        microphoneInput = GetComponent<MicrophoneInput>();
+        microphoneController = GetComponent<MicTools.MicrophoneController>();
+        microphoneInput = GetComponent<MicTools.MicrophoneInput>();
         microphoneController.microphoneActive = true;
         AddRunway(3f);
 	}
@@ -156,9 +155,9 @@ public class GameController : MonoBehaviour {
     }
 
 
-    void OnSoundEvent(SoundEvent se)
+    void OnSoundEvent(MicTools.SoundEvent se)
     {
-        if (se == SoundEvent.SyllablePeak)
+        if (se == MicTools.SoundEvent.SyllablePeak)
             InputEvent();
     }
 

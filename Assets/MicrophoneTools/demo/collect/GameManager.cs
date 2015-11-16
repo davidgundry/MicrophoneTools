@@ -15,9 +15,9 @@ public class GameManager : MonoBehaviour {
 	
 	}
 
-    void OnSoundEvent(SoundEvent se)
+    void OnSoundEvent(MicTools.SoundEvent se)
     {
-        if (se == SoundEvent.SyllablePeak)
+        if (se == MicTools.SoundEvent.SyllablePeak)
         {
             player.Speak();
         }
