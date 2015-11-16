@@ -5,7 +5,6 @@ using MicTools;
 
 namespace MicTools
 {
-
     public class EventRecorder : MonoBehaviour
     {
 
@@ -22,6 +21,18 @@ namespace MicTools
         private bool paused = false;
         private bool audioPlaying;
 
+        public void OnGameEvent(string e)
+        {
+            buffer[bufferPos] = new EventRecord(e);
+            bufferPos = (bufferPos + 1) % buffer.Length;
+        }
+
+        public void OnGameEvent(string key, Object value)
+        {
+            buffer[bufferPos] = new EventRecord(key, value);
+            bufferPos = (bufferPos + 1) % buffer.Length;
+        }
+
         void OnSoundEvent(SoundEvent soundEvent)
         {
             switch (soundEvent)
@@ -36,12 +47,6 @@ namespace MicTools
 
             buffer[bufferPos] = new EventRecord(soundEvent);
             bufferPos = (bufferPos + 1) % buffer.Length;
-        }
-
-        public void OnGameEvent(string e)
-        {
-
-
         }
 
         void Start()

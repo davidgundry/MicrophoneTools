@@ -1,8 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-
-
-namespace MicTools
+﻿namespace MicTools
 {
     public class VowelRecord
     {

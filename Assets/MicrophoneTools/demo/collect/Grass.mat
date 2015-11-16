@@ -18,8 +18,8 @@ Material:
         first:
           name: _MainTex
         second:
-          m_Texture: {fileID: 0}
-          m_Scale: {x: 1, y: 1}
+          m_Texture: {fileID: 10305, guid: 0000000000000000f000000000000000, type: 0}
+          m_Scale: {x: 100, y: 100}
           m_Offset: {x: 0, y: 0}
       data:
         first:
@@ -54,7 +54,7 @@ Material:
           name: _EmissionMap
         second:
           m_Texture: {fileID: 0}
-          m_Scale: {x: 1, y: 1}
+          m_Scale: {x: 100, y: 100}
           m_Offset: {x: 0, y: 0}
       data:
         first:
@@ -68,11 +68,18 @@ Material:
           name: _DetailAlbedoMap
         second:
           m_Texture: {fileID: 0}
-          m_Scale: {x: 1, y: 1}
+          m_Scale: {x: 0, y: 0}
           m_Offset: {x: 0, y: 0}
       data:
         first:
           name: _MetallicGlossMap
+        second:
+          m_Texture: {fileID: 0}
+          m_Scale: {x: 1, y: 1}
+          m_Offset: {x: 0, y: 0}
+      data:
+        first:
+          name: _SpecGlossMap
         second:
           m_Texture: {fileID: 0}
           m_Scale: {x: 1, y: 1}
@@ -101,7 +108,7 @@ Material:
       data:
         first:
           name: _Glossiness
-        second: .5
+        second: .0599999987
       data:
         first:
           name: _BumpScale
@@ -129,7 +136,7 @@ Material:
       data:
         first:
           name: _Metallic
-        second: 0
+        second: .0560000017
     m_Colors:
       data:
         first:
@@ -139,6 +146,10 @@ Material:
         first:
           name: _Color
         second: {r: .0735294223, g: 1, b: .194929138, a: 1}
+      data:
+        first:
+          name: _SpecColor
+        second: {r: 1, g: 1, b: 1, a: 1}
       data:
         first:
           name: _EmissionColorUI
