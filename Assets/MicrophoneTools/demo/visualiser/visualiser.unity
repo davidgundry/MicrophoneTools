@@ -501,7 +501,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   syllables: 0
-  test: 0
+  periodicity: 0
+  test: 1
 --- !u!20 &1357141672
 Camera:
   m_ObjectHideFlags: 0

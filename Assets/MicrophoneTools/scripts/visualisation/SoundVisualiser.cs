@@ -72,6 +72,9 @@ namespace MicTools
                 if (microphoneInput.InputDetected)
                     GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth + visualiserPoints.Length, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), Color.blue, 0, true);
 
+                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + microphoneInput.periodicity * 100, transform.position.z + zPos), Color.red, 0, true);
+
+
                 visualiserPosition++;
                 if (visualiserPosition >= visualiserPoints.Length)
                 {

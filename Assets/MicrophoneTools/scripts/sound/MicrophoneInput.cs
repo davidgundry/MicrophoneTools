@@ -11,6 +11,7 @@ namespace MicTools
 
         private MicrophoneBuffer microphoneBuffer;
 
+        public float caution;
         public int syllables = 0;
         private bool syllable = false;
         public bool Syllable
@@ -73,6 +74,8 @@ namespace MicTools
                 return level;
             }
         }
+
+        public float periodicity;
 
         public bool test;
 
@@ -149,6 +152,7 @@ namespace MicTools
                     Algorithm(window);
             }
         }
+        
 
         private void Algorithm(float[] data)
         {
@@ -166,13 +170,49 @@ namespace MicTools
                     noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
                 }
 
-                DetectNuclei();
+                periodicity = Periodicity(data); // Good at getting rid of unvoiced syllables, and clicks/claps?
+
+                if (periodicity > 0.7f) // If we're using the periodicity, check that the normalised value is high before considering it
+                    DetectNuclei();
+
+
                 if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
                     DetectSyllables();
                 DetectPresence();
+               
             }
             else
                 level = 0;
+        }
+
+        private float Periodicity(float[] window)
+        {
+            float highest = 0;
+            int highestH = 0;
+            for (int h = 240; h >= 40; h--)
+            {
+                float sum = 0;
+                for (int t = 0; t < window.Length - h; t++)
+                {
+                    sum += window[t + h] * window[t];
+                }
+                float gamma = (sum / window.Length) / (window.Length-h);
+                if (gamma > highest)
+                {
+                    highest = gamma;
+                    highestH = h;
+                }
+            }
+
+            float sumZero = 0;
+            for (int t = 0; t < window.Length - 0; t++)
+            {
+                sumZero += window[t + 0] * window[t];
+            }
+            float gammaZero = sumZero / window.Length;
+            float normalised = highest / (gammaZero / window.Length);
+
+            return normalised;
         }
 
         private float[] NewWindow()
@@ -238,7 +278,7 @@ namespace MicTools
                 peak = dip;
             }
 
-            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + standardDeviation))
+            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + caution * standardDeviation))
             {
                 dipped = false;
                 syllables++;

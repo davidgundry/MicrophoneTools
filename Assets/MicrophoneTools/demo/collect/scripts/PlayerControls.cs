@@ -37,7 +37,8 @@ namespace Collect
 
             transform.rotation = new Quaternion();
             float step = speed * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, target.position + new Vector3(0, 1, 0), step);
+            rb.MovePosition(Vector3.MoveTowards(transform.position, target.position + new Vector3(0, 1, 0), step));
+
 
             if (Input.GetMouseButtonDown(0))
             {

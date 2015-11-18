@@ -3,7 +3,6 @@ using System.Collections;
 
 namespace Collect
 {
-
     public class ListenerBehaviour : MonoBehaviour
     {
 
@@ -11,13 +10,14 @@ namespace Collect
         public float speed;
         public float turnSpeed;
         private bool wandering;
+        private Rigidbody rb;
 
         private float confidence;
 
         // Use this for initialization
         void Start()
         {
-
+            rb = GetComponent<Rigidbody>();
         }
 
         // Update is called once per frame
@@ -30,7 +30,7 @@ namespace Collect
                 {
                     float speed = (int)confidence/3;
                     float step = speed * Time.deltaTime;
-                    transform.position = Vector3.MoveTowards(transform.position, target - new Vector3(0, 1, 0), step);
+                    rb.MovePosition(Vector3.MoveTowards(transform.position, target, step));
 
                     transform.LookAt(target, Vector3.up);
                     transform.Rotate(new Vector3(0, 180, 0));
@@ -39,7 +39,7 @@ namespace Collect
             else if (wandering)
             {
                 float step = Time.deltaTime;
-                transform.position = Vector3.MoveTowards(transform.position, target - new Vector3(0, 1, 0), step);
+                rb.MovePosition(Vector3.MoveTowards(transform.position, target, step));
 
                 transform.LookAt(target, Vector3.up);
                 transform.Rotate(new Vector3(0, 180, 0));

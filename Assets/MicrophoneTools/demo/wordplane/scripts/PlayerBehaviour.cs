@@ -111,7 +111,7 @@ namespace WordPlane
                     // Player flying, if they get too low, they land
                     AddActiveForces();
                     AddPassiveForces();
-                    if (transform.position.y < 0.5f)
+                    if (transform.position.y < 0.3f)
                         playerState = PlayerState.Landing;
                     break;
 

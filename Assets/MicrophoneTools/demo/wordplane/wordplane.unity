@@ -1648,7 +1648,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  caution: 2
   syllables: 0
+  periodicity: 0
   test: 0
 --- !u!114 &1523735802
 MonoBehaviour:
