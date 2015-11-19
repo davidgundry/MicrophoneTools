@@ -500,8 +500,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  samples: 0
+  caution: 0
   syllables: 0
-  periodicity: 0
+  normalisedPeakAutocorrelation: 0
   test: 1
 --- !u!20 &1357141672
 Camera:
@@ -597,7 +599,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1357141662}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 63522cf2347aacb4382df951c5531d0f, type: 3}
   m_Name: 
@@ -638,7 +640,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1357141662}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5d6b70923f2fff4f946461424d7b0d3, type: 3}
   m_Name: 
@@ -650,7 +652,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1357141662}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe60d9d7956dca54a88aac3049a5b540, type: 3}
   m_Name: 

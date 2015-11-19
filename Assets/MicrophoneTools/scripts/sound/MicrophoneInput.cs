@@ -9,6 +9,8 @@ namespace MicTools
     public class MicrophoneInput : MonoBehaviour
     {
 
+        public int samples;
+
         private MicrophoneBuffer microphoneBuffer;
 
         public float caution;
@@ -75,7 +77,7 @@ namespace MicTools
             }
         }
 
-        public float periodicity;
+        public float normalisedPeakAutocorrelation;
 
         public bool test;
 
@@ -156,6 +158,7 @@ namespace MicTools
 
         private void Algorithm(float[] data)
         {
+            samples = data.Length;
             float sumIntensity = 0;
             if (!SinglePolaity(data))
             {
@@ -169,10 +172,15 @@ namespace MicTools
                         / Mathf.Min(20, windowsSoFar));
                     noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
                 }
+                float mean = SumIntensity(data) / data.Length;
 
-                periodicity = Periodicity(data); // Good at getting rid of unvoiced syllables, and clicks/claps?
+                int sampleOffsetHigh;
+                int sampleOffsetLow;
+                FrequencyBandToSampleOffsets(data.Length, 44100, 80, 300, out sampleOffsetHigh, out sampleOffsetLow);
+                normalisedPeakAutocorrelation = NormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
+                // but kills detection on phone
 
-                if (periodicity > 0.7f) // If we're using the periodicity, check that the normalised value is high before considering it
+                if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
 
 
@@ -185,25 +193,43 @@ namespace MicTools
                 level = 0;
         }
 
-        private float Periodicity(float[] window)
+        //Not sure I'm doing the right thing here...
+        private void FrequencyBandToSampleOffsets(int windowSize,
+                                                  int sampleRate, 
+                                                  float lowFrequencyBound,
+                                                  float highFrequencyBound,
+                                                  out int sampleOffsetHigh,
+                                                  out int sampleOffsetLow)
+        {
+            float timeStepsPerSecond = 1 / ((float) windowSize / (float) sampleRate);
+            sampleOffsetHigh = (int)(windowSize * (timeStepsPerSecond / lowFrequencyBound));
+            sampleOffsetLow = (int)(windowSize * (timeStepsPerSecond / highFrequencyBound));
+            Debug.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
+        }
+
+        /// <summary>
+        ///     Calculates the peak of the normalised autocorrelation of a window of samples,
+        ///     with an offset within a given band.
+        /// </summary>
+        private float NormalisedPeakAutocorrelation(float[] window,
+                                                    float mean,
+                                                    int sampleOffsetHigh,
+                                                    int sampleOffsetLow)
         {
             float highest = 0;
-            int highestH = 0;
-            for (int h = 240; h >= 40; h--)
+
+            for (int h = sampleOffsetHigh; h >= sampleOffsetLow; h--)
             {
                 float sum = 0;
                 for (int t = 0; t < window.Length - h; t++)
-                {
-                    sum += window[t + h] * window[t];
-                }
-                float gamma = (sum / window.Length) / (window.Length-h);
+                    sum += (window[t + h] - mean) * (window[t] - mean);
+
+                float gamma = (sum / window.Length) / (window.Length - h);
                 if (gamma > highest)
-                {
                     highest = gamma;
-                    highestH = h;
-                }
             }
 
+            // Here we normalise the peak value so it is between 0 and 1
             float sumZero = 0;
             for (int t = 0; t < window.Length - 0; t++)
             {

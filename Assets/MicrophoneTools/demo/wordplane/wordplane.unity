@@ -1524,7 +1524,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   microphoneActive: 1
   testClip: {fileID: 0}
-  sampleRate: 44100
+  sampleRate: 8000
 --- !u!82 &1523735797
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1648,9 +1648,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  caution: 2
+  samples: 0
+  caution: 1
   syllables: 0
-  periodicity: 0
+  normalisedPeakAutocorrelation: 0
   test: 0
 --- !u!114 &1523735802
 MonoBehaviour:

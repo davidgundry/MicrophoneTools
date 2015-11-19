@@ -51,6 +51,7 @@ namespace WordPlane
             }
 
             speedText.text = (int)((playerBehaviour.Speed() * 5 * 60 * 60) / 1000) + " km/h";
+            //speedText.text = ""+microphoneInput.normalisedPeakAutocorrelation;
 
             if (pointsText.transform.localScale.x > 0.75f)
             {
