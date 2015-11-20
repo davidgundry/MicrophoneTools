@@ -146,10 +146,11 @@ namespace MicTools
                 test = false;
             }
 
-            elapsedTime += AudioSettings.dspTime;
+            elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
                 float[] window = NewWindow();
+                
                 if (window.Length > 0)
                     Algorithm(window);
             }
@@ -170,17 +171,17 @@ namespace MicTools
                             (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar) - 1)
                             + Mathf.Pow(level - noiseIntensity, 2))
                         / Mathf.Min(20, windowsSoFar));
-                    noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(44100 * 4, samplesSoFar);
+                    noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(AudioSettings.outputSampleRate * 4, samplesSoFar);
                 }
                 float mean = SumIntensity(data) / data.Length;
 
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
-                FrequencyBandToSampleOffsets(data.Length, 44100, 80, 300, out sampleOffsetHigh, out sampleOffsetLow);
+                FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow);
                 normalisedPeakAutocorrelation = NormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
                 // but kills detection on phone
 
-                if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
+                //if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
 
 
@@ -204,7 +205,7 @@ namespace MicTools
             float timeStepsPerSecond = 1 / ((float) windowSize / (float) sampleRate);
             sampleOffsetHigh = (int)(windowSize * (timeStepsPerSecond / lowFrequencyBound));
             sampleOffsetLow = (int)(windowSize * (timeStepsPerSecond / highFrequencyBound));
-            Debug.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
+            //Debug.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
         }
 
         /// <summary>
@@ -232,9 +233,8 @@ namespace MicTools
             // Here we normalise the peak value so it is between 0 and 1
             float sumZero = 0;
             for (int t = 0; t < window.Length - 0; t++)
-            {
                 sumZero += window[t + 0] * window[t];
-            }
+
             float gammaZero = sumZero / window.Length;
             float normalised = highest / (gammaZero / window.Length);
 

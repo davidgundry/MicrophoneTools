@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using MicTools;
 
-namespace MicTools
+namespace TeleTools
 {
     [RequireComponent(typeof(MicrophoneController))]
     [RequireComponent(typeof(AudioSource))]

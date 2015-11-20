@@ -501,7 +501,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   samples: 0
-  caution: 0
+  caution: 1
   syllables: 0
   normalisedPeakAutocorrelation: 0
   test: 1

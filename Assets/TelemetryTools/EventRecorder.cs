@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using MicTools;
 
-namespace MicTools
+namespace TeleTools
 {
     public class EventRecorder : MonoBehaviour
     {
