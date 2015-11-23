@@ -633,7 +633,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   saveDirectory: MicrophoneTools
   filesuffix: 
-  recording: 0
+  recording: 1
 --- !u!114 &1357141680
 MonoBehaviour:
   m_ObjectHideFlags: 0

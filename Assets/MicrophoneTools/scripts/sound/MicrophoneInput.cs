@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System;
 using MicTools;
 
 namespace MicTools
@@ -149,11 +150,32 @@ namespace MicTools
             elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
+                TelemetryTools.Telemetry.SendStreamIDValue((byte)15, elapsedTime);
                 float[] window = NewWindow();
-                
+
                 if (window.Length > 0)
+                {
                     Algorithm(window);
+
+                    TelemetryTools.Telemetry.SendStreamKeyValue("npa", normalisedPeakAutocorrelation);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("lvl", level);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("noi", noiseIntensity);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("sd", standardDeviation);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("pek", peak);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("dip", dip);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("dpd", Convert.ToInt32(dipped));
+                    TelemetryTools.Telemetry.SendStreamKeyValue("sbs", syllables);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("slb", Convert.ToInt32(syllable));
+                    TelemetryTools.Telemetry.SendStreamKeyValue("ept", elapsedTime);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("idt", inputDetectionTimeout);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("ssf", samplesSoFar);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("wsf", windowsSoFar);
+                    TelemetryTools.Telemetry.SendStreamKeyValue("ind", Convert.ToInt32(inputDetected));
+                }
             }
+
+            TelemetryTools.Telemetry.SendStreamIDValue((byte)16, Time.deltaTime);
+            TelemetryTools.Telemetry.Update();
         }
         
 
@@ -183,6 +205,7 @@ namespace MicTools
 
                 //if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
+                
 
 
                 if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
@@ -265,8 +288,10 @@ namespace MicTools
                     i++;
                     bufferReadPos = (bufferReadPos + 1) % buffer.Length;
                 }
+                //TelemetryTools.Telemetry.SendStreamKeyFloatBlock("audio", data);
                 return data;
             }
+
             return new float[0];
         }
 

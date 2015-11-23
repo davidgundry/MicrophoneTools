@@ -3,7 +3,7 @@ using System.Collections;
 using System.IO;
 using MicTools;
 
-namespace TeleTools
+namespace MicTools
 {
     public class EventRecorder : MonoBehaviour
     {
@@ -45,6 +45,7 @@ namespace TeleTools
                     break;
             }
 
+            TelemetryTools.Telemetry.SendEvent(EventRecord.SoundEventToString(soundEvent), System.DateTime.Now.Ticks);
             buffer[bufferPos] = new EventRecord(soundEvent);
             bufferPos = (bufferPos + 1) % buffer.Length;
         }
@@ -52,6 +53,7 @@ namespace TeleTools
         void Start()
         {
             buffer = new EventRecord[64];
+            TelemetryTools.Telemetry.Start();
         }
 
         void Update()

@@ -4,7 +4,7 @@ using System;
 using System.IO;
 using MicTools;
 
-namespace TeleTools
+namespace MicTools
 {
     [RequireComponent(typeof(MicrophoneController))]
     [RequireComponent(typeof(AudioSource))]
@@ -116,6 +116,7 @@ namespace TeleTools
 
         private void Buffer(float[] data)
         {
+            //TelemetryTools.Telemetry.SendStreamValueBlock((byte) 1, data);
             for (int i = 0; i < data.Length; i++)
             {
                 buffer[bufferPos] = data[i];

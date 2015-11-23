@@ -68,6 +68,7 @@ namespace MicTools
 
         public override string ToString()
         {
+            return value;
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.Append("\"record\":{\"key\":\"");
             sb.Append(key);
@@ -80,7 +81,7 @@ namespace MicTools
             return sb.ToString();
         }
 
-        private static string SoundEventToString(SoundEvent e)
+        public static string SoundEventToString(SoundEvent e)
         {
             switch (e)
             {

@@ -210,7 +210,7 @@ namespace MicTools
             gameObject.SendMessage("OnSoundEvent", SoundEvent.AudioEnd, SendMessageOptions.DontRequireReceiver);
         }
 
-        /* void OnApplicationPause(bool pauseStatus)
+         void OnApplicationPause(bool pauseStatus)
          {
              if ((microphoneDeviceSet) && (pauseStatus))
                  StopListening();
@@ -229,13 +229,14 @@ namespace MicTools
          void OnApplicationQuit()
          {
              StopListening();
+             TelemetryTools.Telemetry.End();
          }
 
          void OnApplicationFocus(bool focus)
          {
              if (!focus)
                  StopListening();
-         }*/
+         }
 
         /*
          * Change the microphone to the given ID. Will fail if user authorisation has not been obtained or device doesn't exist.
