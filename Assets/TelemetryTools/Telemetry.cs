@@ -82,10 +82,39 @@ namespace TelemetryTools
 
                     if (cachedFiles.Count > 0)
                         SendFromCache();
+                    else
+                    {
+                        www.Dispose();
+                        www = null;
+                    }
+
                 }
 
             UpdateLogging();
-            Debug.Log("Logging: " + Mathf.Round((loggingRate / 1024)) + " KiB/s    HTTP: " + (HTTPPostRate / 1024) + " KiB/s    File: " + (LocalFileSaveRate / 1024) + " KiB/s    Total: " + (dataLogged / 1048576) + " MiB    Cached Files: " + cachedFiles.Count);
+            Debug.Log(PrettyLoggingRate());
+        }
+
+        public static void End()
+        {
+            if (www != null)
+                SaveDataOnSendFailure(wwwData, wwwSequenceID);
+            WriteLocalCacheList();
+        }
+
+        private static string PrettyLoggingRate()
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("Logging: ");
+            sb.Append(Mathf.Round((loggingRate / 1024)));
+            sb.Append(" KiB/s    HTTP: ");
+            sb.Append((HTTPPostRate / 1024));
+            sb.Append(" KiB/s    File: ");
+            sb.Append((LocalFileSaveRate / 1024));
+            sb.Append(" KiB/s    Total: ");
+            sb.Append((dataLogged / 1048576));
+            sb.Append(" MiB    Cached Files: ");
+            sb.Append(cachedFiles.Count);
+            return sb.ToString();
         }
 
         private static void SendFromCache()
@@ -120,11 +149,6 @@ namespace TelemetryTools
             WriteDataToFile(data, id, NewFileInfo(id));
         }
 
-        public static void End()
-        {
-            WriteLocalCacheList();
-        }
-
         private static FileInfo localCacheInfo()
         {
             FilePath directory = LocalFilePath(cacheDirectory);
@@ -140,8 +164,15 @@ namespace TelemetryTools
             FilePath directory = LocalFilePath(cacheDirectory);
             if (Directory.Exists(directory))
             {
-                string[] lines = System.IO.File.ReadAllLines(LocalFilePath(cacheDirectory + "/" + cacheListFilename));
-                cachedFiles = new List<FilePath>(lines);
+                try
+                {
+                    string[] lines = System.IO.File.ReadAllLines(LocalFilePath(cacheDirectory + "/" + cacheListFilename));
+                    cachedFiles = new List<FilePath>(lines);
+                }
+                catch (FileNotFoundException ex)
+                {
+                    cachedFiles = new List<FilePath>();
+                }
             }
         }
 
@@ -355,6 +386,7 @@ namespace TelemetryTools
                 if (!((www.error == null) || (www.error == "")))
                     SaveDataOnSendFailure(wwwData, wwwSequenceID);
 
+                www.Dispose();
                 www = SendByHTTPPost(data);
                 sequenceID++;
                 return true;

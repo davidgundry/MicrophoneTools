@@ -229,7 +229,6 @@ namespace MicTools
          void OnApplicationQuit()
          {
              StopListening();
-             TelemetryTools.Telemetry.End();
          }
 
          void OnApplicationFocus(bool focus)

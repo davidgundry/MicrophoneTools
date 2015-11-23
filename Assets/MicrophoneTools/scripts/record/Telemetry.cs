@@ -1,8 +1,10 @@
-﻿using MicTools;
+﻿using UnityEngine;
+using System.Collections;
+using System.IO;
+using MicTools;
 
 namespace MicTools
 {
-
     public enum SoundEvent
     {
         PermissionRequired,
@@ -17,71 +19,44 @@ namespace MicTools
         SyllablePeak
     }
 
-    public class EventRecord
+    public class Telemetry : MonoBehaviour
     {
-
-        private string key;
-        public string Key
+        void Start()
         {
-            get
-            {
-                return key;
-            }
-        }
-        private string value;
-        public string Value
-        {
-            get
-            {
-                return value;
-            }
-        }
-        private long time;
-        public long Time
-        {
-            get
-            {
-                return time;
-            }
+            TelemetryTools.Telemetry.Start();
         }
 
-        public EventRecord(SoundEvent soundEvent)
+        void Update()
         {
-            key = SoundEventToString(soundEvent);
-            value = "";
-            time = System.DateTime.Now.Ticks;
+            TelemetryTools.Telemetry.Update();
         }
 
-        public EventRecord(string key)
+        void OnSoundEvent(SoundEvent soundEvent)
         {
-            this.key = key;
-            value = "";
-            time = System.DateTime.Now.Ticks;
+            TelemetryTools.Telemetry.SendEvent(SoundEventToString(soundEvent), System.DateTime.Now.Ticks);
         }
 
-        public EventRecord(string key, System.Object value)
+        void OnApplicationPause(bool pauseStatus)
         {
-            this.key = key;
-            this.value = value.ToString();
+
         }
 
-
-        public override string ToString()
+        void OnDisable()
         {
-            return value;
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("\"record\":{\"key\":\"");
-            sb.Append(key);
-            sb.Append("\", \"value:\"");
-            sb.Append(value);
-            sb.Append("\", \"time:\"");
-            sb.Append(time);
-            sb.Append("\"}");
 
-            return sb.ToString();
         }
 
-        public static string SoundEventToString(SoundEvent e)
+        void OnDestroy()
+        {
+
+        }
+
+        void OnApplicationQuit()
+        {
+            TelemetryTools.Telemetry.End();
+        }
+
+        private static string SoundEventToString(SoundEvent e)
         {
             switch (e)
             {
@@ -108,6 +83,5 @@ namespace MicTools
             }
             return "Unrecognised Event";
         }
-
     }
 }

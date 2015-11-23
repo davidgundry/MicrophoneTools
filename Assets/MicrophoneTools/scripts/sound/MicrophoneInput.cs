@@ -150,13 +150,13 @@ namespace MicTools
             elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
-                TelemetryTools.Telemetry.SendStreamIDValue((byte)15, elapsedTime);
+                TelemetryTools.Telemetry.SendStreamKeyValue("et", elapsedTime);
                 float[] window = NewWindow();
 
                 if (window.Length > 0)
                 {
                     Algorithm(window);
-
+                    //TelemetryTools.Telemetry.SendStreamKeyFloatBlock("audio", window);
                     TelemetryTools.Telemetry.SendStreamKeyValue("npa", normalisedPeakAutocorrelation);
                     TelemetryTools.Telemetry.SendStreamKeyValue("lvl", level);
                     TelemetryTools.Telemetry.SendStreamKeyValue("noi", noiseIntensity);
@@ -174,8 +174,7 @@ namespace MicTools
                 }
             }
 
-            TelemetryTools.Telemetry.SendStreamIDValue((byte)16, Time.deltaTime);
-            TelemetryTools.Telemetry.Update();
+            TelemetryTools.Telemetry.SendStreamKeyValue("dt", Time.deltaTime);
         }
         
 
@@ -288,7 +287,6 @@ namespace MicTools
                     i++;
                     bufferReadPos = (bufferReadPos + 1) % buffer.Length;
                 }
-                //TelemetryTools.Telemetry.SendStreamKeyFloatBlock("audio", data);
                 return data;
             }
 
