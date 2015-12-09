@@ -1,192 +1,802 @@
-﻿using System;
-using System.IO;
+﻿#if (!UNITY_WEBPLAYER)
+#define LOCALSAVEENABLED
+#endif
+
+#define POSTENABLED
+
+using System;
+using System.ComponentModel;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+
 using UnityEngine;
 
+#if LOCALSAVEENABLED
+using System.IO;
+#endif
+
 using BytesPerSecond = System.Single;
-using Bytes = System.Int32;
-using Megabytes = System.Int32;
+using Bytes = System.UInt32;
+using Megabytes = System.UInt32;
 using Ticks = System.Int64;
 using FilePath = System.String;
 using URL = System.String;
-using SequenceID = System.Int32;
+using SequenceID = System.Nullable<System.UInt32>;
+using SessionID = System.Nullable<System.UInt32>;
+using FrameID = System.UInt32;
+using UserDataKey = System.String;
+
 
 namespace TelemetryTools
 {
+
+    public static class Event
+    {
+        public const string TelemetryStart = "^TTStart";
+        public const string Frame = "^Frame";
+        public const string ApplicationPause = "^AppPause";
+        public const string ApplicationUnpause = "^AppUnpause";
+        public const string ApplicationQuit = "^AppQuit";
+    }
+
+    public static class Stream
+    {
+        public const string FrameTime = "^FT";
+        public const string DeltaTime = "^DT";
+        public const string LostData = "^LD";
+    }
+
+    public static class UserDataKeys
+    {
+        public const string RequestTime = "^RequestTime";
+        public const string Platform = "^Platform";
+        public const string WebPlayerURL = "^WebPlayerURL";
+        public const string Version = "^Version";
+        public const string UnityVersion = "^UnityVersion";
+        public const string Genuine = "^Genuine";
+    }
+
     public class Telemetry
     {
-        private static Ticks startTicks = 0;
-        private static SequenceID sequenceID = 0;
+        private static Telemetry instance;
+        public static Telemetry Instance
+        {
+            get
+            {
+                if (instance == null)
+                    Start();
+                return instance;
+            }
+        }
 
+        private readonly Ticks startTicks = 0;
+        private readonly SessionID sessionID = 0;
+        private SequenceID sequenceID = 0;
+        private FrameID frameID = 0;
+
+        private const FilePath fileExtension = "telemetry";
+
+#if LOCALSAVEENABLED
         // Local
-        private const FilePath cacheDirectory = "cache";
+        private readonly FilePath cacheDirectory;
         private const FilePath cacheListFilename = "cache.txt";
-        private static FileInfo file;
-        private static List<FilePath> cachedFiles;
+        private List<FilePath> cachedFilesList;
+#endif
 
+
+#if POSTENABLED
         // Remote
-        private const URL uploadURL = "http://localhost";
-        private static WWW www;
-        private static byte[] wwwData;
-        private static SequenceID wwwSequenceID;
+        private string uniqueKey;
+        private bool httpPostEnabled = false;
+        private readonly URL uploadURL;
+        private readonly URL keyServer;
+        private WWW keywww;
+        private WWW www;
+        private byte[] wwwData;
+        private SequenceID wwwSequenceID;
+        private SessionID wwwSessionID;
+        private readonly Bytes minSendingThreshold;
+        private const Bytes defaultMinSendingThreshold = 1024;
+        private bool wwwBusy = false;
+#endif
 
         // Buffers
-        private const Bytes bufferSize = 1024;//1048576; //1MiB
-        private static byte[] outboxBuffer1 = new byte[bufferSize];
-        private static byte[] outboxBuffer2 = new byte[bufferSize];
-        private static int bufferPos = 0;
-        private static bool buffer1Active = true;
-        private static bool offBufferFull = false;
+        private const Bytes defaultBufferSize = 1048576;
+        private const Bytes defaultFrameBufferSize = 1024*128;
+        private readonly Bytes bufferSize;
+        private readonly Bytes frameBufferSize;
+        private byte[] outboxBuffer1;
+        private byte[] outboxBuffer2;
+        private int bufferPos = 0;
+        private bool buffer1Active = true;
+        private bool offBufferFull = false;
+        private byte[] frameBuffer;
+        private int frameBufferPos = 0;
+        private Bytes lostData = 0;
+        public Bytes LostData { get { return lostData; } }
 
         // Logging and Transfer Rate
-        private static Ticks lastLoggingUpdate;
+        private Ticks lastLoggingUpdate;
 
-        private static Megabytes dataLogged;
-        private static Bytes dataLoggedSinceUpdate;
-        private static Bytes dataSavedToFileSinceUpdate;
-        private static Bytes dataSentByHTTPSinceUpdate;
+        private Megabytes dataLogged;
+        public Megabytes DataLogged { get { return dataLogged; } }
+        private Bytes dataLoggedSinceUpdate;
+        public Bytes DataLoggedSinceUpdate { get { return dataLoggedSinceUpdate; } }
+        private Bytes dataSavedToFileSinceUpdate;
+        public Bytes DataSavedToFileSinceUpdate { get { return dataSavedToFileSinceUpdate; } }
+        private Bytes dataSentByHTTPSinceUpdate;
+        public Bytes DataSentByHTTPSinceUpdate { get { return dataSentByHTTPSinceUpdate; } }
 
-        private static BytesPerSecond loggingRate;
-        private static BytesPerSecond HTTPPostRate;
-        private static BytesPerSecond LocalFileSaveRate;
+        private BytesPerSecond loggingRate;
+        public BytesPerSecond LoggingRate { get { return loggingRate; } }
+        private BytesPerSecond httpPostRate;
+        public BytesPerSecond HTTPPostRate { get { return httpPostRate; } }
+        private BytesPerSecond localFileSaveRate;
+        public BytesPerSecond LocalFileSaveRate { get { return LocalFileSaveRate; } }
 
+        public Telemetry(URL uploadURL, URL keyServer, FilePath cacheDirectory, KeyValuePair<string, string>[] userData, Bytes bufferSize = defaultBufferSize, Bytes frameBufferSize = defaultFrameBufferSize, Bytes minSendingThreshold = defaultMinSendingThreshold)
+        {
+            this.bufferSize = bufferSize;
+            this.frameBufferSize = bufferSize;
+            this.minSendingThreshold = minSendingThreshold;
+
+            outboxBuffer1 = new byte[bufferSize];
+            outboxBuffer2 = new byte[bufferSize];
+            frameBuffer = new byte[frameBufferSize];
+
+            Array.Clear(outboxBuffer1, 0, outboxBuffer1.Length);
+            Array.Clear(outboxBuffer2, 0, outboxBuffer2.Length);
+            Array.Clear(frameBuffer, 0, frameBuffer.Length);
+
+#if LOCALSAVEENABLED
+            this.cacheDirectory = cacheDirectory;
+            cachedFilesList = ReadStringsFromFile(GetFileInfo(cacheDirectory, cacheListFilename));
+#endif
+
+            sessionID = (SessionID)PlayerPrefs.GetInt("sessionID");
+            PlayerPrefs.SetInt("sessionID", (int)sessionID+1);
+            PlayerPrefs.Save();
+
+
+#if POSTENABLED
+            this.uploadURL = uploadURL;
+            this.keyServer = keyServer;
+
+            uniqueKey = PlayerPrefs.GetString("key");
+            if (!string.IsNullOrEmpty(uniqueKey))
+                httpPostEnabled = true;
+            else
+                keywww = RequestUniqueKey(keyServer, userData);
+#endif
+
+            startTicks = System.DateTime.UtcNow.Ticks;
+
+            SendFrame();
+            SendStreamValue(TelemetryTools.Stream.FrameTime, System.DateTime.UtcNow.Ticks);
+            SendKeyValuePair(Event.TelemetryStart, System.DateTime.UtcNow.ToString("u"));
+        }
 
         public static void Start()
         {
-            cachedFiles = new List<FilePath>();
-            ReadLocalCacheList();
-            startTicks = System.DateTime.Now.Ticks;
+            List<KeyValuePair<UserDataKey, string>> userData = new List<KeyValuePair<UserDataKey, string>>();
+            userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Platform, Application.platform.ToString()));
+            userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Version, Application.version));
+            userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.UnityVersion, Application.unityVersion));
+            userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Genuine, Application.genuine.ToString()));
+            if (Application.isWebPlayer)
+                userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
 
-            for (int i = 0; i < outboxBuffer1.Length; i++) { outboxBuffer1[i] = 0; }
-            for (int i = 0; i < outboxBuffer2.Length; i++) { outboxBuffer2[i] = 0; }
-
-            SendEvent("TTStartTick", startTicks * 2);
+            instance = new Telemetry(uploadURL: "localhost", keyServer: "localhost", cacheDirectory : "cache", userData: userData.ToArray());
         }
 
-        public static void Update()
+
+        public static void Update() { Instance.UpdateP(); }
+
+        private void UpdateP()
         {
             if (offBufferFull)
             {
                 if (buffer1Active)
-                    offBufferFull = !SendBuffer(outboxBuffer2);
+                    offBufferFull = !SendBuffer(RemoveTrailingNulls(outboxBuffer2));
                 else
-                    offBufferFull = !SendBuffer(outboxBuffer1);
+                    offBufferFull = !SendBuffer(RemoveTrailingNulls(outboxBuffer1));
             }
-            else if (www != null)
-                if (www.isDone)
+
+#if POSTENABLED
+            if (keywww != null)
+                if (GetReturnedKey(ref keywww, ref httpPostEnabled, ref uniqueKey))
                 {
-                    if (!((www.error == null) || (www.error == "")))
-                        SaveDataOnSendFailure(wwwData, wwwSequenceID);
-
-                    if (cachedFiles.Count > 0)
-                        SendFromCache();
-                    else
-                    {
-                        www.Dispose();
-                        www = null;
-                    }
-
+                    string[] keys = new string[1];
+                    keys[0] = uniqueKey;
+                    PlayerPrefs.SetString("key",uniqueKey);
+                    PlayerPrefs.Save();
                 }
 
+            SaveDataOnWWWErrorIfWeCan();
+
+            if (httpPostEnabled)
+            {
+    #if LOCALSAVEENABLED
+                if ((!offBufferFull) && (!wwwBusy))
+                {
+                    if (cachedFilesList.Count > 0)
+                    {
+                        byte[] data;
+                        SessionID snID;
+                        SequenceID sqID;
+                        LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID);
+                        if ((data.Length > 0) && (snID != null) && (sqID != null))
+                        {
+                            SendByHTTPPost(data, snID, sqID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
+                            System.IO.File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).Name);
+                        }
+                    }
+                }
+    #endif
+
+                if ((!offBufferFull) && (!wwwBusy))
+                {
+                    if (bufferPos > minSendingThreshold)
+                    {
+                        SendBuffer(GetDataInActiveBuffer());
+                        bufferPos = 0;
+                        sequenceID++;
+                    }
+                }
+            }
+#endif
             UpdateLogging();
-            Debug.Log(PrettyLoggingRate());
         }
 
-        public static void End()
+        public static void Stop() { Instance.StopP();}
+
+        private void StopP()
         {
+            byte[] dataInBuffer = GetDataInActiveBuffer();
+            bool savedBuffer = false;
+
+#if LOCALSAVEENABLED
+            WriteCacheFile(dataInBuffer, sessionID, sequenceID);
+            savedBuffer = true;
+#endif
+
+            bufferPos = 0;
+            sequenceID++;
+
+#if POSTENABLED
+            SaveDataOnWWWErrorIfWeCan();
+
             if (www != null)
-                SaveDataOnSendFailure(wwwData, wwwSequenceID);
-            WriteLocalCacheList();
+            {
+    #if LOCALSAVEENABLED
+                if (!www.isDone)
+                    WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID);
+    #endif
+                DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+            }
+
+            if (httpPostEnabled)
+            {
+                WWW stopwww = null;
+                SendByHTTPPost(dataInBuffer, sessionID, sequenceID, fileExtension, uniqueKey, uploadURL, ref stopwww, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
+                savedBuffer = true;
+            }
+#endif
+
+            if (!savedBuffer)
+                lostData += (uint) dataInBuffer.Length;
         }
 
-        private static string PrettyLoggingRate()
+
+        private void UpdateLogging()
+        {
+            dataLogged += dataLoggedSinceUpdate;
+
+            BytesPerSecond bytePerSecond = 10000000 / Mathf.Max((System.DateTime.UtcNow.Ticks - lastLoggingUpdate),1);
+            loggingRate = bytePerSecond * dataLoggedSinceUpdate;
+            httpPostRate = bytePerSecond * dataSentByHTTPSinceUpdate;
+            localFileSaveRate = bytePerSecond * dataSavedToFileSinceUpdate;
+
+            lastLoggingUpdate = System.DateTime.UtcNow.Ticks;
+            dataLoggedSinceUpdate = 0;
+            dataSavedToFileSinceUpdate = 0;
+            dataSentByHTTPSinceUpdate = 0;
+        }
+
+        private bool SendBuffer(byte[] data)
+        {
+#if POSTENABLED
+            if (httpPostEnabled)
+            {
+                SaveDataOnWWWErrorIfWeCan();
+
+                if (!wwwBusy)
+                {
+                    SendByHTTPPost(data, sessionID, sequenceID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
+                    dataSentByHTTPSinceUpdate += (uint) data.Length;
+                    sequenceID++;
+                    return true;
+                }
+            }
+#endif
+#if LOCALSAVEENABLED
+            if (WriteCacheFile(data, sessionID, sequenceID))
+            {
+                sequenceID++;
+                return true;
+            }
+#endif
+
+            Debug.LogWarning("Could not deal with buffer: " + BytesToString(data));
+
+            return false;
+        }
+
+        private void BufferData(byte[] data, bool newFrame = false)
+        {
+            dataLoggedSinceUpdate += (uint) data.Length;
+
+            if (newFrame)
+            {
+                if (frameID != 0)
+                {
+                    byte[] endFrame = StringToBytes("}");
+                    System.Buffer.BlockCopy(endFrame, 0, frameBuffer, frameBufferPos, endFrame.Length);
+                    frameBufferPos += endFrame.Length;
+                }
+
+                if (frameBufferPos + bufferPos > bufferSize)
+                {
+                    if (offBufferFull)
+                    {
+                        Debug.LogWarning("Overflow local telemetry buffer, data overwritten");
+                        if (buffer1Active)
+                            lostData += (uint) RemoveTrailingNulls(outboxBuffer2).Length;
+                        else
+                            lostData += (uint) RemoveTrailingNulls(outboxBuffer1).Length;
+                    }
+
+                    if (buffer1Active)
+                        Array.Clear(outboxBuffer1, bufferPos, outboxBuffer1.Length - bufferPos);
+                    else
+                        Array.Clear(outboxBuffer2, bufferPos, outboxBuffer2.Length - bufferPos);
+
+                    buffer1Active = !buffer1Active;
+                    offBufferFull = true;
+                    bufferPos = 0;
+                }
+
+                if (buffer1Active)
+                    System.Buffer.BlockCopy(frameBuffer, 0, outboxBuffer1, bufferPos, frameBufferPos);
+                else
+                    System.Buffer.BlockCopy(frameBuffer, 0, outboxBuffer2, bufferPos, frameBufferPos);
+                bufferPos += frameBufferPos;
+                frameBufferPos = 0;
+
+                frameID++;
+            }
+
+            if (frameBufferPos + data.Length < frameBuffer.Length)
+            {
+                System.Buffer.BlockCopy(data, 0, frameBuffer, frameBufferPos, data.Length);
+                frameBufferPos += data.Length;
+            }
+            else
+            {
+                Debug.LogWarning("Overflow frame buffer, data lost");
+                lostData += (uint) data.Length;
+            }
+        }
+
+        private long GetTimeFromStart()
+        {
+            return System.DateTime.UtcNow.Ticks - startTicks;
+        }
+
+        private byte[] GetDataInActiveBuffer()
+        {
+            byte[] partBuffer = new byte[bufferPos];
+            if (bufferPos > 0)
+            {
+                if (buffer1Active)
+                    System.Buffer.BlockCopy(outboxBuffer1, 0, partBuffer, 0, partBuffer.Length);
+                else
+                    System.Buffer.BlockCopy(outboxBuffer2, 0, partBuffer, 0, partBuffer.Length);
+            }
+            return partBuffer;
+        }
+
+        public static string GetPrettyLoggingRate() { return Instance.GetPrettyLoggingRateP(); }
+
+        private string GetPrettyLoggingRateP()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("Logging: ");
+            sb.Append("Log Input: ");
             sb.Append(Mathf.Round((loggingRate / 1024)));
-            sb.Append(" KiB/s    HTTP: ");
-            sb.Append((HTTPPostRate / 1024));
-            sb.Append(" KiB/s    File: ");
-            sb.Append((LocalFileSaveRate / 1024));
-            sb.Append(" KiB/s    Total: ");
-            sb.Append((dataLogged / 1048576));
-            sb.Append(" MiB    Cached Files: ");
-            sb.Append(cachedFiles.Count);
+            sb.Append(" KiB/s");
+
+#if POSTENABLED
+           sb.Append("    HTTP: ");
+            sb.Append(Mathf.Round((httpPostRate / 1024)));
+            sb.Append(" KiB/s");
+#endif
+#if LOCALSAVEENABLED
+            sb.Append("    File: ");
+            sb.Append(Mathf.Round((localFileSaveRate / 1024)));
+            sb.Append(" KiB/s");
+#endif
+            sb.Append("    Total: ");
+            sb.Append((dataLogged / 1024));
+            sb.Append(" KiB");
+#if LOCALSAVEENABLED
+            sb.Append("    Cached Files: ");
+            if (cachedFilesList != null)
+                sb.Append(cachedFilesList.Count);
+            else
+                sb.Append("0");
+#endif
+
+            sb.Append("    Lost Data: ");
+            sb.Append((lostData / 1024));
+            sb.Append(" KiB");
+
             return sb.ToString();
         }
 
-        private static void SendFromCache()
+        public void SendFrame()
         {
-            FilePath name = cachedFiles[0];
-            cachedFiles.RemoveAt(0);
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append("{\"id:");
+            sb.Append(frameID);
+            sb.Append("");
+            BufferData(StringToBytes(sb.ToString()), newFrame: true);
+        }
 
-            FilePath directory = LocalFilePath(cacheDirectory);
+        public void SendEvent(string name, Ticks time)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append((time - startTicks).ToString());
+            sb.Append("\":\"");
+            sb.Append(name);
+            sb.Append("\"");
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+
+        public void SendEvent(string name)
+        {
+            SendEvent(name, System.DateTime.UtcNow.Ticks);
+        }
+
+        public void SendKeyValuePair(string key, string value)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":\"");
+            sb.Append(value);
+            sb.Append("\"");
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendValue(string key, ValueType value, Ticks time)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":{\"v\":");
+            sb.Append(value.ToString());
+            sb.Append(",\"t\":");
+            sb.Append((time - startTicks).ToString());
+            sb.Append("}");
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendValue(string key, ValueType value)
+        {
+            SendValue(key, value, System.DateTime.UtcNow.Ticks);
+        }
+
+
+        public void SendStreamValue(string key, ValueType value)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":");
+            sb.Append(value.ToString());
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendStreamValueBlock(string key, byte[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i < values.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendStreamValueBlock(string key, short[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i < values.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendStreamValueBlock(string key, int[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i < values.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public static void SendStreamValueBlock(string key, long[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i<values.Length-1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            Instance.BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendStreamValueBlock(string key, float[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i < values.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendStreamValueBlock(string key, double[] values)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":[");
+            for (int i = 0; i < values.Length; i++)
+            {
+                sb.Append(values[i].ToString());
+                if (i < values.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendByteDataBase64(string key, byte[] data)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":\"");
+            sb.Append(data.Length);
+            sb.Append(",");
+            sb.Append(System.Convert.ToBase64String(data));
+            sb.Append("\"");
+
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
+        public void SendByteDataBinary(string key, byte[] data)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":\"");
+            byte[] b1 = StringToBytes(sb.ToString());
+
+            byte[] b2 = BitConverter.GetBytes((System.Int32) data.Length);
+            byte nullByte = (byte) 0;
+            byte[] b3 = StringToBytes("\"");
+
+            byte[] output = new byte[data.Length + b1.Length + b2.Length + 1 + b3.Length];
+            System.Buffer.BlockCopy(b1,0,output,0,b1.Length);
+            System.Buffer.BlockCopy(b2,0,output,b1.Length,b2.Length);
+            output[b1.Length] = nullByte;
+            System.Buffer.BlockCopy(data,0,output,b1.Length+b2.Length+1,data.Length);
+            System.Buffer.BlockCopy(b3,0,output,b1.Length+b2.Length+data.Length+1,b3.Length);
+
+            BufferData(output);
+        }
+
+#if POSTENABLED
+        private static void SendByHTTPPost( byte[] data,
+                                            SessionID sessionID,
+                                            SequenceID sequenceID,
+                                            FilePath fileExtension,
+                                            string uniqueKey,
+                                            URL uploadURL,
+                                            ref WWW www,
+                                            out byte[] wwwData,
+                                            out SequenceID wwwSequenceID,
+                                            out SessionID wwwSessionID,
+                                            out bool wwwBusy)
+        {
+
+            WWWForm form = new WWWForm();
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(sessionID);
+            sb.Append(".");
+            sb.Append(sequenceID);
+            sb.Append(".");
+            sb.Append(fileExtension);
+            form.AddField("key", uniqueKey);
+            form.AddBinaryData(fileExtension, data, sb.ToString());
+            
+            www = new WWW(uploadURL, form);
+            wwwBusy = true;
+            wwwData = new byte[data.Length];
+            System.Buffer.BlockCopy(data, 0, wwwData, 0, data.Length);
+            wwwSequenceID = sequenceID;
+            wwwSessionID = sessionID;
+        }
+
+        private static bool HandleWWWErrors(ref WWW www, ref byte[] wwwData, ref SessionID wwwSessionID, ref SequenceID wwwSequenceID, ref bool wwwBusy)
+        {
+            if (www != null)
+            {
+                if ((www.isDone) && (!string.IsNullOrEmpty(www.error)))
+                {
+                    Debug.LogWarning("Send Data Error: " + www.error);
+                    return false;
+                }
+                else if (www.isDone)
+                    DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+            }
+            return true;
+        }
+
+        private static WWW RequestUniqueKey(URL keyServer, KeyValuePair<string, string>[] userData)
+        {
+            WWWForm form = new WWWForm();
+
+            form.AddField(UserDataKeys.RequestTime, System.DateTime.UtcNow.ToString("u"));
+
+            foreach (KeyValuePair<string, string> pair in userData)
+                form.AddField(pair.Key, pair.Value);
+
+            return new WWW(keyServer, form);
+        }
+
+
+        private static bool GetReturnedKey(ref WWW keywww, ref bool httpPostEnabled, ref string uniqueKey)
+        {
+            if (keywww != null)
+                if (keywww.isDone)
+                {
+                    if (string.IsNullOrEmpty(keywww.error))
+                    {
+                        uniqueKey = keywww.text;
+                        Debug.Log("Key retrieved: " + uniqueKey);
+                        httpPostEnabled = true;
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Error connecting to key server");
+                        httpPostEnabled = false;
+                        keywww.Dispose();
+                        keywww = null;
+                    }
+                }
+            return false;
+        }
+
+        private static void DisposeWWW(ref WWW www, ref byte[] wwwData, ref SessionID wwwSessionID, ref SequenceID wwwSequenceID, ref bool wwwBusy)
+        {
+            wwwBusy = false;
+            wwwData = new byte[0];
+            wwwSessionID = null;
+            wwwSequenceID = null;
+        }
+#endif
+
+#if LOCALSAVEENABLED
+        private static void WriteDataToFile(byte[] data, FileInfo file)
+        {
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = file.Open(FileMode.Create);
+                fileStream.Write(data, 0, data.Length);
+                
+            }
+            finally
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                    fileStream = null;
+                }
+            }
+        }
+
+        private static void LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID)
+        {
+            data = new byte[0];
+            sessionID = null;
+            sequenceID = null;
+            directory = LocalFilePath(directory);
             if (Directory.Exists(directory))
             {
-                SequenceID seqID = 0;
+                uint sqID = 0;
+                uint snID = 0;
                 string[] separators = new string[1];
                 separators[0] = ".";
-                bool parsed = Int32.TryParse(name.Split(separators, 1, System.StringSplitOptions.None)[0], out seqID); ;
+                string[] fileDetails = filename.Split(separators, 3, System.StringSplitOptions.None);
+                bool parsed = UInt32.TryParse(fileDetails[0], out snID) && UInt32.TryParse(fileDetails[1], out sqID);
 
                 if (parsed)
                 {
-                    Debug.Log("seqID " + seqID);
-                    FilePath cacheFile = LocalFilePath(cacheDirectory + "/" + name);
-                    byte[] bytes = System.IO.File.ReadAllBytes(cacheFile);
-                    www = SendByHTTPPost(bytes);
-                    wwwSequenceID = seqID;
-                    wwwData = bytes;
-                    System.IO.File.Delete(cacheFile);
+                    sessionID = snID;
+                    sequenceID = sqID;
+                    FilePath cacheFile = directory + "/" + filename;
+                    data = System.IO.File.ReadAllBytes(cacheFile);
                 }
             }
         }
 
-        private static void SaveDataOnSendFailure(byte[] data, SequenceID id)
-        {
-            Debug.Log("Send Data Error:" + www.error);
-            WriteDataToFile(data, id, NewFileInfo(id));
-        }
 
-        private static FileInfo localCacheInfo()
-        {
-            FilePath directory = LocalFilePath(cacheDirectory);
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
-
-            FilePath filePath = LocalFilePath(directory + "/" + cacheListFilename);
-            return new FileInfo(filePath);
-        }
-
-        private static void ReadLocalCacheList()
-        {
-            FilePath directory = LocalFilePath(cacheDirectory);
-            if (Directory.Exists(directory))
-            {
-                try
-                {
-                    string[] lines = System.IO.File.ReadAllLines(LocalFilePath(cacheDirectory + "/" + cacheListFilename));
-                    cachedFiles = new List<FilePath>(lines);
-                }
-                catch (FileNotFoundException ex)
-                {
-                    cachedFiles = new List<FilePath>();
-                }
-            }
-        }
-
-        private static void WriteLocalCacheList()
+        private static void WriteStringsToFile(string[] stringList, FileInfo file)
         {
             FileStream fileStream = null;
             byte[] newLine = StringToBytes("\n");
             try
             {
-                fileStream = localCacheInfo().Open(FileMode.Create);
+                fileStream = file.Open(FileMode.Create);
 
-                foreach (FilePath filename in cachedFiles)
+                foreach (FilePath str in stringList)
                 {
-                    byte[] bytes = StringToBytes(filename);
+                    byte[] bytes = StringToBytes(str);
                     fileStream.Write(bytes, 0, bytes.Length);
                     fileStream.Write(newLine, 0, newLine.Length);
                 }
@@ -201,242 +811,28 @@ namespace TelemetryTools
             }
         }
 
-        private static void UpdateLogging()
+
+        private static List<FilePath> ReadStringsFromFile(FileInfo file)
         {
-            dataLogged += dataLoggedSinceUpdate;
+            List<FilePath> list = new List<FilePath>();
 
-            BytesPerSecond bytePerSecond = 10000000 / Mathf.Max((System.DateTime.Now.Ticks - lastLoggingUpdate),1);
-            loggingRate = bytePerSecond * dataLoggedSinceUpdate;
-            HTTPPostRate = bytePerSecond * dataSentByHTTPSinceUpdate;
-            LocalFileSaveRate = bytePerSecond * dataSavedToFileSinceUpdate;
-
-            lastLoggingUpdate = System.DateTime.Now.Ticks;
-            dataLoggedSinceUpdate = 0;
-            dataSavedToFileSinceUpdate = 0;
-            dataSentByHTTPSinceUpdate = 0;
-        }
-
-        public static void SendEvent(string name, Ticks time)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append((time - startTicks).ToString());
-            sb.Append("\":\"");
-            sb.Append(name);
-            sb.Append("\"}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendEventID(byte id, Ticks time)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append((time - startTicks).ToString());
-            sb.Append("\":\"");
-            sb.Append(id.ToString());
-            sb.Append("\"}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendKeyValue(string key, ValueType value, Ticks time)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(key);
-            sb.Append("\":");
-            sb.Append(value.ToString());
-            sb.Append(",\"t\":");
-            sb.Append((time - startTicks).ToString());
-            sb.Append("}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendIDValue(byte id, ValueType value, Ticks time)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(id.ToString());
-            sb.Append("\":");
-            sb.Append(value.ToString());
-            sb.Append(",\"t\":");
-            sb.Append((time - startTicks).ToString());
-            sb.Append("}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendStreamIDValue(byte id, ValueType value)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(id.ToString());
-            sb.Append("\":");
-            sb.Append(value.ToString());
-            sb.Append("}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendStreamKeyValue(string key, ValueType value)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(key);
-            sb.Append("\":");
-            sb.Append(value.ToString());
-            sb.Append("}");
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendStreamIDValueBlock(byte id, ValueType[] values)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(id.ToString());
-            sb.Append("\":[");
-            for (int i = 0; i < values.Length; i++)
-            {
-                sb.Append(values[i].ToString());
-                sb.Append(",");
-            }
-            sb.Append("]}");
-
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendStreamKeyValueBlock(string key, ValueType[] values)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(key);
-            sb.Append("\":[");
-            for (int i = 0; i < values.Length; i++)
-            {
-                sb.Append(values[i].ToString());
-                sb.Append(",");
-            }
-            sb.Append("]}");
-
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        public static void SendStreamIDFloatBlock(byte id, float[] values)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(id.ToString());
-            sb.Append("\":[");
-            for (int i = 0; i < values.Length; i++)
-            {
-                sb.Append(values[i].ToString());
-                sb.Append(",");
-            }
-            sb.Append("]}");
-
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-
-        public static void SendStreamKeyFloatBlock(string id, float[] values)
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"");
-            sb.Append(id);
-            sb.Append("\":[");
-            for (int i = 0; i < values.Length; i++)
-            {
-                sb.Append(values[i].ToString());
-                sb.Append(",");
-            }
-            sb.Append("]}");
-
-            BufferForSending(StringToBytes(sb.ToString()));
-        }
-
-        private static void BufferForSending(byte[] data)
-        {
-            dataLoggedSinceUpdate += data.Length;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                if (buffer1Active)
-                    outboxBuffer1[bufferPos] = data[i];
-                else
-                    outboxBuffer2[bufferPos] = data[i];
-
-                bufferPos = (bufferPos + 1) % bufferSize;
-                if (bufferPos == 0)
-                {
-                    if (offBufferFull)
-                        throw new System.ArgumentException("Overflow local telemetry buffer, data overwritten");
-                    buffer1Active = !buffer1Active;
-                    offBufferFull = true;
-                }
-            }
-        }
-
-        private static bool SendBuffer(byte[] data)
-        {
-            if (www == null)
-            {
-                www = SendByHTTPPost(data);
-                sequenceID++;
-                return true;
-            }
-            else if (www.isDone)
-            {
-                if (!((www.error == null) || (www.error == "")))
-                    SaveDataOnSendFailure(wwwData, wwwSequenceID);
-
-                www.Dispose();
-                www = SendByHTTPPost(data);
-                sequenceID++;
-                return true;
-            }
-
-            if (!IsFileOpen(file))
-            {
-                file = NewFileInfo(sequenceID);
-                if (WriteDataToFile(data, sequenceID, file))
-                {
-                    sequenceID++;
-                    return true;
-                }
-            }
-
-            char[] chars = new char[data.Length / sizeof(char)];
-            System.Buffer.BlockCopy(data, 0, chars, 0, data.Length);
-            Debug.Log("Could not save buffer: " + new string(chars));
-
-            return false;
-        }
-
-        private static WWW SendByHTTPPost(byte[] data)
-        {
-            WWWForm form = new WWWForm();
-            //form.AddField("time", (System.DateTime.Now.Ticks-startTicks) + "");
-            form.AddBinaryData("telemetry", data, sequenceID + ".telemetry");
-            WWW w = new WWW(uploadURL, form);
-            
-            wwwData = new byte[data.Length];
-            System.Buffer.BlockCopy(data, 0, wwwData, 0, data.Length);
-
-            wwwSequenceID = sequenceID;
-            dataSentByHTTPSinceUpdate += data.Length;
-            return w;
-        }
-
-        private static bool WriteDataToFile(byte[] data, int id, FileInfo file)
-        {
             FileStream fileStream = null;
             try
             {
-                fileStream = file.Open(FileMode.Create);
-                fileStream.Write(data, 0, data.Length);
-                cachedFiles.Add(file.Name);
+                fileStream = file.Open(FileMode.Open);
+
+                byte[] bytes = new byte[fileStream.Length];
+                fileStream.Read(bytes, 0, (int)fileStream.Length);
+                string s = BytesToString(bytes);
+                string[] separators = new string[1];
+                separators[0] = "\n";
+                string[] lines = s.Split(separators, Int32.MaxValue, StringSplitOptions.RemoveEmptyEntries);
+                list = new List<FilePath>(lines);
+                return list;
             }
-            catch (IOException e)
+            catch (IOException ex)
             {
-                Debug.Log(e.Message);
-                return false;
+                return list;
             }
             finally
             {
@@ -446,19 +842,54 @@ namespace TelemetryTools
                     fileStream = null;
                 }
             }
-
-            dataSavedToFileSinceUpdate += data.Length;
-            return true;
         }
 
-        private static FileInfo NewFileInfo(int sequenceID)
+        private static T ReadValueFromFile<T>(FileInfo file)
         {
-            FilePath directory = LocalFilePath(cacheDirectory);
-            if (!Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = file.Open(FileMode.Open);
 
-            FilePath filePath = LocalFilePath(directory + "/" + sequenceID + "." + (System.DateTime.Now.Ticks - startTicks) + ".telemetry");
-            return new FileInfo(filePath);
+                byte[] bytes = new byte[fileStream.Length];
+                fileStream.Read(bytes, 0, (int)fileStream.Length);
+                string s = BytesToString(bytes);
+
+                return (T) TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(s);
+
+            }
+            catch
+            {
+                return default(T);
+            }
+            finally
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                    fileStream = null;
+                }
+            }
+        }
+
+        private static void WriteValueToFile(ValueType value, FileInfo file)
+        {
+            FileStream fileStream = null;
+            try
+            {
+                fileStream = file.Open(FileMode.Create);
+
+                byte[] bytes = StringToBytes(value.ToString() + "\n");
+                fileStream.Write(bytes, 0, bytes.Length);
+            }
+            finally
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                    fileStream = null;
+                }
+            }
         }
 
         private static bool IsFileOpen(FileInfo file)
@@ -484,6 +915,39 @@ namespace TelemetryTools
             return false;
         }
 
+        private static FileInfo GetFileInfo(FilePath directory, FilePath filename)
+        {
+            directory = LocalFilePath(directory);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            FilePath filePath = LocalFilePath(directory + "/" + filename);
+            return new FileInfo(filePath);
+        }
+
+        private static FileInfo GetFileInfo(FilePath directory,
+                                            SessionID sessionID,
+                                            SequenceID sequenceID,
+                                            long time,
+                                            FilePath fileExtension)
+        {
+            directory = LocalFilePath(directory);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(sessionID);
+            sb.Append(".");
+            sb.Append(sequenceID);
+            sb.Append(".");
+            sb.Append(time);
+            sb.Append(".");
+            sb.Append(fileExtension);
+
+            FilePath filePath = directory + "/" +sb.ToString();
+            return new FileInfo(filePath);
+        }
+
         private static FilePath LocalFilePath(FilePath filename)
         {
             if (Application.platform == RuntimePlatform.IPhonePlayer)
@@ -500,17 +964,73 @@ namespace TelemetryTools
             }
             else
             {
+                //TODO: check what's going on here.
                 FilePath path = Application.dataPath;
-                path = path.Substring(0, path.LastIndexOf('/'));
+                path = path.Substring(0, path.LastIndexOf('/')+1);
+                //return path + filename;
                 return Path.Combine(path, filename);
             }
         }
+
+        private bool WriteCacheFile(byte[] data, SessionID sessionID, SequenceID sequenceID)
+        {
+                FileInfo file = GetFileInfo(cacheDirectory, sessionID, sequenceID, GetTimeFromStart(), fileExtension);
+                if ((!File.Exists(file.FullName)) || (!IsFileOpen(file)))
+                {
+                    WriteDataToFile(data, file);
+                    dataSavedToFileSinceUpdate += (uint) data.Length;
+
+                    cachedFilesList.Add(file.Name);
+                    //TODO: Append rather than rewrite everything
+                    WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
+                    return true;
+                }
+            return false;
+        }
+
+#endif
+
+#if POSTENABLED
+        private void SaveDataOnWWWErrorIfWeCan()
+        {
+            if ((www != null) && (wwwBusy))
+            {
+                if (!HandleWWWErrors(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy))
+                {
+#if LOCALSAVEENABLED
+                    if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID))
+                        DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+#else
+                    dataLost += wwwData.Length;
+                    DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+#endif
+                }
+            }
+        }
+#endif
 
         private static byte[] StringToBytes(string str)
         {
             byte[] bytes = new byte[str.Length * sizeof(char)];
             System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
             return bytes;
+        }
+
+        private static string BytesToString(byte[] bytes)
+        {
+            char[] chars = new char[bytes.Length / sizeof(char)];
+            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            return new string(chars);
+        }
+
+        private static byte[] RemoveTrailingNulls(byte[] data)
+        {
+            int i=data.Length-1;
+            while (data[i] == 0)
+                i--;
+            byte[] trimmed = new byte[i+2];
+            System.Buffer.BlockCopy(data,0,trimmed,0,trimmed.Length);
+            return trimmed;
         }
     }
 }

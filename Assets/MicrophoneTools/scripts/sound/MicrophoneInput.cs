@@ -112,18 +112,19 @@ namespace MicTools
             int length = (int)(GetComponent<MicrophoneController>().SampleRate * timeStep);
             float[] samples = new float[length];
 
-            for (int i = 0; i < testClip.samples; i += samples.Length)
-            {
-                if (i + samples.Length > testClip.samples)
-                    samples = new float[testClip.samples - i];
-                else if (samples.Length != length)
-                    samples = new float[length];
+            if (testClip != null)
+                for (int i = 0; i < testClip.samples; i += samples.Length)
+                {
+                    if (i + samples.Length > testClip.samples)
+                        samples = new float[testClip.samples - i];
+                    else if (samples.Length != length)
+                        samples = new float[length];
 
-                windowsSoFar++;
-                samplesSoFar += samples.Length;
-                testClip.GetData(samples, i);
-                Algorithm(samples);
-            }
+                    windowsSoFar++;
+                    samplesSoFar += samples.Length;
+                    testClip.GetData(samples, i);
+                    Algorithm(samples);
+                }
 
             int totalS = syllables;
             syllables = startingSyllables;
@@ -139,6 +140,23 @@ namespace MicTools
         }
 
 
+        private static byte[] EncodeFloatBlockToRawAudioBytes(float[] data)
+        {
+            byte[] bytes = new byte[data.Length * 2];
+            int rescaleFactor = 32767;
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                short intData;
+                intData = (short)(data[i] * rescaleFactor);
+                byte[] byteArr = new byte[2];
+                byteArr = BitConverter.GetBytes(intData);
+                byteArr.CopyTo(bytes, i * 2);
+            }
+
+            return bytes;
+        }
+
         void Update()
         {
             if (test)
@@ -150,31 +168,30 @@ namespace MicTools
             elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
-                TelemetryTools.Telemetry.SendStreamKeyValue("et", elapsedTime);
+                TelemetryTools.Telemetry.Instance.SendStreamValue("et", elapsedTime);
                 float[] window = NewWindow();
 
                 if (window.Length > 0)
                 {
                     Algorithm(window);
-                    //TelemetryTools.Telemetry.SendStreamKeyFloatBlock("audio", window);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("npa", normalisedPeakAutocorrelation);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("lvl", level);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("noi", noiseIntensity);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("sd", standardDeviation);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("pek", peak);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("dip", dip);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("dpd", Convert.ToInt32(dipped));
-                    TelemetryTools.Telemetry.SendStreamKeyValue("sbs", syllables);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("slb", Convert.ToInt32(syllable));
-                    TelemetryTools.Telemetry.SendStreamKeyValue("ept", elapsedTime);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("idt", inputDetectionTimeout);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("ssf", samplesSoFar);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("wsf", windowsSoFar);
-                    TelemetryTools.Telemetry.SendStreamKeyValue("ind", Convert.ToInt32(inputDetected));
+                    TelemetryTools.Telemetry.Instance.SendByteDataBinary("audio", EncodeFloatBlockToRawAudioBytes(window));
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("npa", normalisedPeakAutocorrelation);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", level);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("noi", noiseIntensity);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("sd", standardDeviation);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("pek", peak);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("dip", dip);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("dpd", Convert.ToInt32(dipped));
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("sbs", syllables);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("slb", Convert.ToInt32(syllable));
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("idt", inputDetectionTimeout);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("ssf", samplesSoFar);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("wsf", windowsSoFar);
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("ind", Convert.ToInt32(inputDetected));
                 }
             }
 
-            TelemetryTools.Telemetry.SendStreamKeyValue("dt", Time.deltaTime);
+            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.DeltaTime, Time.deltaTime);
         }
         
 

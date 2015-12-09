@@ -116,7 +116,7 @@ namespace MicTools
 
         private void Buffer(float[] data)
         {
-            //TelemetryTools.Telemetry.SendStreamValueBlock((byte) 1, data);
+            //TelemetryTools.Telemetry.Instance.SendStreamValueBlock("mic", data);
             for (int i = 0; i < data.Length; i++)
             {
                 buffer[bufferPos] = data[i];

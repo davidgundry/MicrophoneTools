@@ -21,39 +21,38 @@ namespace MicTools
 
     public class Telemetry : MonoBehaviour
     {
-        void Start()
-        {
-            TelemetryTools.Telemetry.Start();
-        }
-
         void Update()
         {
+            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.LostData, TelemetryTools.Telemetry.Instance.LostData);
+            TelemetryTools.Telemetry.Instance.SendFrame();
+            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, System.DateTime.Now.Ticks);
+
             TelemetryTools.Telemetry.Update();
-        }
 
-        void OnSoundEvent(SoundEvent soundEvent)
-        {
-            TelemetryTools.Telemetry.SendEvent(SoundEventToString(soundEvent), System.DateTime.Now.Ticks);
-        }
-
-        void OnApplicationPause(bool pauseStatus)
-        {
-
-        }
-
-        void OnDisable()
-        {
-
+            Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
         }
 
         void OnDestroy()
         {
+            TelemetryTools.Telemetry.Stop();
+        }
 
+        void OnSoundEvent(SoundEvent soundEvent)
+        {
+            TelemetryTools.Telemetry.Instance.SendEvent(SoundEventToString(soundEvent), System.DateTime.Now.Ticks);
+        }
+
+        void OnApplicationPause(bool pauseStatus)
+        {
+           if (pauseStatus)
+               TelemetryTools.Telemetry.Instance.SendEvent(TelemetryTools.Event.ApplicationUnpause, System.DateTime.Now.Ticks);
+            else
+               TelemetryTools.Telemetry.Instance.SendEvent(TelemetryTools.Event.ApplicationPause, System.DateTime.Now.Ticks);
         }
 
         void OnApplicationQuit()
         {
-            TelemetryTools.Telemetry.End();
+            TelemetryTools.Telemetry.Instance.SendEvent(TelemetryTools.Event.ApplicationQuit, System.DateTime.Now.Ticks);
         }
 
         private static string SoundEventToString(SoundEvent e)

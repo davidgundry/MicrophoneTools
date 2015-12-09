@@ -313,7 +313,7 @@ MonoBehaviour:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1357141662}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a6ace77b426f900468dfbf397b5fc5f5, type: 3}
   m_Name: 
@@ -503,7 +503,7 @@ MonoBehaviour:
   caution: 1
   syllables: 0
   normalisedPeakAutocorrelation: 0
-  test: 1
+  test: 0
 --- !u!20 &1357141672
 Camera:
   m_ObjectHideFlags: 0
