@@ -49,12 +49,12 @@ namespace TelemetryTools
 
     public static class UserDataKeys
     {
-        public const string RequestTime = "^RequestTime";
-        public const string Platform = "^Platform";
-        public const string WebPlayerURL = "^WebPlayerURL";
-        public const string Version = "^Version";
-        public const string UnityVersion = "^UnityVersion";
-        public const string Genuine = "^Genuine";
+        public const string RequestTime = "RequestTime";
+        public const string Platform = "Platform";
+        public const string WebPlayerURL = "WebPlayerURL";
+        public const string Version = "Version";
+        public const string UnityVersion = "UnityVersion";
+        public const string Genuine = "Genuine";
     }
 
     public class Telemetry
@@ -187,7 +187,7 @@ namespace TelemetryTools
             if (Application.isWebPlayer)
                 userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
 
-            instance = new Telemetry(uploadURL: "localhost", keyServer: "localhost", cacheDirectory : "cache", userData: userData.ToArray());
+			instance = new Telemetry(uploadURL: "http://192.168.1.66/ttsrv/upload.php", keyServer: "http://192.168.1.66/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
         }
 
 
@@ -205,13 +205,21 @@ namespace TelemetryTools
 
 #if POSTENABLED
             if (keywww != null)
-                if (GetReturnedKey(ref keywww, ref httpPostEnabled, ref uniqueKey))
+			{
+				bool? success = GetReturnedKey(ref keywww, ref httpPostEnabled, ref uniqueKey);
+				if (success != null)
                 {
-                    string[] keys = new string[1];
-                    keys[0] = uniqueKey;
-                    PlayerPrefs.SetString("key",uniqueKey);
-                    PlayerPrefs.Save();
+					if (success == true)
+					{
+	                    string[] keys = new string[1];
+	                    keys[0] = uniqueKey;
+	                    PlayerPrefs.SetString("key",uniqueKey);
+	                    PlayerPrefs.Save();
+					}
+					keywww.Dispose();
+					keywww = null;
                 }
+			}
 
             SaveDataOnWWWErrorIfWeCan();
 
@@ -226,10 +234,12 @@ namespace TelemetryTools
                         SessionID snID;
                         SequenceID sqID;
                         LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID);
+
                         if ((data.Length > 0) && (snID != null) && (sqID != null))
                         {
                             SendByHTTPPost(data, snID, sqID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
-                            System.IO.File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).Name);
+							System.IO.File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
+							cachedFilesList.RemoveAt(0);
                         }
                     }
                 }
@@ -241,7 +251,6 @@ namespace TelemetryTools
                     {
                         SendBuffer(GetDataInActiveBuffer());
                         bufferPos = 0;
-                        sequenceID++;
                     }
                 }
             }
@@ -690,7 +699,13 @@ namespace TelemetryTools
                     return false;
                 }
                 else if (www.isDone)
+				{
+					if (!string.IsNullOrEmpty(www.text.Trim()))
+					{
+						Debug.LogWarning ("Response from server: " + www.text);
+					}
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+				}
             }
             return true;
         }
@@ -699,7 +714,7 @@ namespace TelemetryTools
         {
             WWWForm form = new WWWForm();
 
-            form.AddField(UserDataKeys.RequestTime, System.DateTime.UtcNow.ToString("u"));
+			form.AddField(UserDataKeys.RequestTime, System.DateTime.UtcNow.ToString("u"));
 
             foreach (KeyValuePair<string, string> pair in userData)
                 form.AddField(pair.Key, pair.Value);
@@ -708,27 +723,35 @@ namespace TelemetryTools
         }
 
 
-        private static bool GetReturnedKey(ref WWW keywww, ref bool httpPostEnabled, ref string uniqueKey)
+        private static bool? GetReturnedKey(ref WWW keywww, ref bool httpPostEnabled, ref string uniqueKey)
         {
             if (keywww != null)
                 if (keywww.isDone)
                 {
                     if (string.IsNullOrEmpty(keywww.error))
                     {
-                        uniqueKey = keywww.text;
-                        Debug.Log("Key retrieved: " + uniqueKey);
-                        httpPostEnabled = true;
-                        return true;
+						if (keywww.text.StartsWith("key:"))
+						{
+							uniqueKey = keywww.text.Substring(4);
+							Debug.Log("Key retrieved: " + uniqueKey);
+							httpPostEnabled = true;
+							return true;
+						}
+						else
+						{
+							Debug.LogWarning("Invalid key retrieved: " +  keywww.text);
+							httpPostEnabled = false;
+							return false;
+						}
                     }
                     else
                     {
                         Debug.LogWarning("Error connecting to key server");
                         httpPostEnabled = false;
-                        keywww.Dispose();
-                        keywww = null;
+						return false;
                     }
                 }
-            return false;
+            return null;
         }
 
         private static void DisposeWWW(ref WWW www, ref byte[] wwwData, ref SessionID wwwSessionID, ref SequenceID wwwSequenceID, ref bool wwwBusy)
