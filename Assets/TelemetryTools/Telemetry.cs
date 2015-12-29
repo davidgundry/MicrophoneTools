@@ -187,7 +187,7 @@ namespace TelemetryTools
             if (Application.isWebPlayer)
                 userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
 
-			instance = new Telemetry(uploadURL: "http://192.168.1.66/ttsrv/upload.php", keyServer: "http://192.168.1.66/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
+			instance = new Telemetry(uploadURL: "http://192.168.43.101/ttsrv/upload.php", keyServer: "http://192.168.43.101/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
         }
 
 
