@@ -174,7 +174,7 @@ namespace MicTools
                 if (window.Length > 0)
                 {
                     Algorithm(window);
-                    TelemetryTools.Telemetry.Instance.SendByteDataBinary("audio", EncodeFloatBlockToRawAudioBytes(window));
+                    TelemetryTools.Telemetry.Instance.SendByteDataBase64("audio", EncodeFloatBlockToRawAudioBytes(window));
                     TelemetryTools.Telemetry.Instance.SendStreamValue("npa", normalisedPeakAutocorrelation);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", level);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("noi", noiseIntensity);

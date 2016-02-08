@@ -29,7 +29,7 @@ namespace MicTools
 
             TelemetryTools.Telemetry.Update();
 
-            //Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
+            Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
         }
 
         void OnDestroy()

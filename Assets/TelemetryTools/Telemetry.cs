@@ -5,6 +5,7 @@
 #define POSTENABLED
 
 using System;
+using System.Text;
 using System.ComponentModel;
 using System.Collections;
 using System.Collections.Generic;
@@ -33,18 +34,18 @@ namespace TelemetryTools
 
     public static class Event
     {
-        public const string TelemetryStart = "^TTStart";
-        public const string Frame = "^Frame";
-        public const string ApplicationPause = "^AppPause";
-        public const string ApplicationUnpause = "^AppUnpause";
-        public const string ApplicationQuit = "^AppQuit";
+        public const string TelemetryStart = "TTStart";
+        public const string Frame = "Frame";
+        public const string ApplicationPause = "AppPause";
+        public const string ApplicationUnpause = "AppUnpause";
+        public const string ApplicationQuit = "AppQuit";
     }
 
     public static class Stream
     {
-        public const string FrameTime = "^FT";
-        public const string DeltaTime = "^DT";
-        public const string LostData = "^LD";
+        public const string FrameTime = "FT";
+        public const string DeltaTime = "DT";
+        public const string LostData = "LD";
     }
 
     public static class UserDataKeys
@@ -65,7 +66,7 @@ namespace TelemetryTools
             get
             {
                 if (instance == null)
-                    Start();
+                    SelfStart();
                 return instance;
             }
         }
@@ -85,7 +86,7 @@ namespace TelemetryTools
 #endif
 
 
-#if POSTENABLED
+#if POSTENABLED 
         // Remote
         private string uniqueKey;
         private bool httpPostEnabled = false;
@@ -96,16 +97,15 @@ namespace TelemetryTools
         private byte[] wwwData;
         private SequenceID wwwSequenceID;
         private SessionID wwwSessionID;
-        private readonly Bytes minSendingThreshold;
-        private const Bytes defaultMinSendingThreshold = 1024;
         private bool wwwBusy = false;
 #endif
+        private readonly Bytes minSendingThreshold;
+        private const Bytes defaultMinSendingThreshold = 1024;
 
         // Buffers
         private const Bytes defaultBufferSize = 1048576;
         private const Bytes defaultFrameBufferSize = 1024*128;
         private readonly Bytes bufferSize;
-        private readonly Bytes frameBufferSize;
         private byte[] outboxBuffer1;
         private byte[] outboxBuffer2;
         private int bufferPos = 0;
@@ -138,7 +138,6 @@ namespace TelemetryTools
         public Telemetry(URL uploadURL, URL keyServer, FilePath cacheDirectory, KeyValuePair<string, string>[] userData, Bytes bufferSize = defaultBufferSize, Bytes frameBufferSize = defaultFrameBufferSize, Bytes minSendingThreshold = defaultMinSendingThreshold)
         {
             this.bufferSize = bufferSize;
-            this.frameBufferSize = bufferSize;
             this.minSendingThreshold = minSendingThreshold;
 
             outboxBuffer1 = new byte[bufferSize];
@@ -167,7 +166,7 @@ namespace TelemetryTools
             if (!string.IsNullOrEmpty(uniqueKey))
                 httpPostEnabled = true;
             else
-                keywww = RequestUniqueKey(keyServer, userData);
+                keywww = RequestUniqueKey(this.keyServer, userData);
 #endif
 
             startTicks = System.DateTime.UtcNow.Ticks;
@@ -175,9 +174,12 @@ namespace TelemetryTools
             SendFrame();
             SendStreamValue(TelemetryTools.Stream.FrameTime, System.DateTime.UtcNow.Ticks);
             SendKeyValuePair(Event.TelemetryStart, System.DateTime.UtcNow.ToString("u"));
+
+
+            Debug.Log("Persistant Data Path: " + Application.persistentDataPath);
         }
 
-        public static void Start()
+        private static void SelfStart()
         {
             List<KeyValuePair<UserDataKey, string>> userData = new List<KeyValuePair<UserDataKey, string>>();
             userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Platform, Application.platform.ToString()));
@@ -187,7 +189,7 @@ namespace TelemetryTools
             if (Application.isWebPlayer)
                 userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
 
-			instance = new Telemetry(uploadURL: "http://192.168.43.101/ttsrv/upload.php", keyServer: "http://192.168.43.101/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
+			instance = new Telemetry(uploadURL: "http://192.168.43.101/ttsrv/import.php", keyServer: "http://192.168.43.101/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
         }
 
 
@@ -233,14 +235,13 @@ namespace TelemetryTools
                         byte[] data;
                         SessionID snID;
                         SequenceID sqID;
-                        LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID);
+                        if (LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID))
+                            if ((data.Length > 0) && (snID != null) && (sqID != null))
+                                SendByHTTPPost(data, snID, sqID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
 
-                        if ((data.Length > 0) && (snID != null) && (sqID != null))
-                        {
-                            SendByHTTPPost(data, snID, sqID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
-							System.IO.File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
-							cachedFilesList.RemoveAt(0);
-                        }
+                        File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
+                        cachedFilesList.RemoveAt(0);
+
                     }
                 }
     #endif
@@ -350,7 +351,7 @@ namespace TelemetryTools
             {
                 if (frameID != 0)
                 {
-                    byte[] endFrame = StringToBytes("}");
+                    byte[] endFrame = StringToBytes("},");
                     System.Buffer.BlockCopy(endFrame, 0, frameBuffer, frameBufferPos, endFrame.Length);
                     frameBufferPos += endFrame.Length;
                 }
@@ -456,7 +457,7 @@ namespace TelemetryTools
         public void SendFrame()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"id:");
+            sb.Append("{\"id\":");
             sb.Append(frameID);
             sb.Append("");
             BufferData(StringToBytes(sb.ToString()), newFrame: true);
@@ -635,6 +636,7 @@ namespace TelemetryTools
             BufferData(StringToBytes(sb.ToString()));
         }
 
+        //Looking at the Mongo spec, it seems that it doesn't support this sort of encoding, use SendByteDataBase64 instead.
         public void SendByteDataBinary(string key, byte[] data)
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -679,6 +681,7 @@ namespace TelemetryTools
             sb.Append(".");
             sb.Append(fileExtension);
             form.AddField("key", uniqueKey);
+            form.AddField("session", sessionID.ToString());
             form.AddBinaryData(fileExtension, data, sb.ToString());
             
             www = new WWW(uploadURL, form);
@@ -771,7 +774,6 @@ namespace TelemetryTools
             {
                 fileStream = file.Open(FileMode.Create);
                 fileStream.Write(data, 0, data.Length);
-                
             }
             finally
             {
@@ -783,7 +785,7 @@ namespace TelemetryTools
             }
         }
 
-        private static void LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID)
+        private static bool LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID)
         {
             data = new byte[0];
             sessionID = null;
@@ -803,9 +805,19 @@ namespace TelemetryTools
                     sessionID = snID;
                     sequenceID = sqID;
                     FilePath cacheFile = directory + "/" + filename;
-                    data = System.IO.File.ReadAllBytes(cacheFile);
+                    if (File.Exists(cacheFile))
+                    {
+                        data = File.ReadAllBytes(cacheFile);
+                        return true;
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
+                        return false;
+                    }
                 }
             }
+            return false;
         }
 
 
@@ -839,60 +851,73 @@ namespace TelemetryTools
         {
             List<FilePath> list = new List<FilePath>();
 
-            FileStream fileStream = null;
-            try
+            if (file.Exists)
             {
-                fileStream = file.Open(FileMode.Open);
-
-                byte[] bytes = new byte[fileStream.Length];
-                fileStream.Read(bytes, 0, (int)fileStream.Length);
-                string s = BytesToString(bytes);
-                string[] separators = new string[1];
-                separators[0] = "\n";
-                string[] lines = s.Split(separators, Int32.MaxValue, StringSplitOptions.RemoveEmptyEntries);
-                list = new List<FilePath>(lines);
-                return list;
-            }
-            catch (IOException ex)
-            {
-                return list;
-            }
-            finally
-            {
-                if (fileStream != null)
+                FileStream fileStream = null;
+                try
                 {
-                    fileStream.Close();
-                    fileStream = null;
+                    fileStream = file.Open(FileMode.Open);
+
+                    byte[] bytes = new byte[fileStream.Length];
+                    fileStream.Read(bytes, 0, (int)fileStream.Length);
+                    string s = BytesToString(bytes);
+                    string[] separators = new string[1];
+                    separators[0] = "\n";
+                    string[] lines = s.Split(separators, Int32.MaxValue, StringSplitOptions.RemoveEmptyEntries);
+                    list = new List<FilePath>(lines);
+                    return list;
+                }
+                catch (IOException ex)
+                {
+                    return list;
+                }
+                finally
+                {
+                    if (fileStream != null)
+                    {
+                        fileStream.Close();
+                        fileStream = null;
+                    }
                 }
             }
+            Debug.LogWarning("Attempted to read strings from non-existant file: " + file.FullName);
+            return list;
         }
 
         private static T ReadValueFromFile<T>(FileInfo file)
         {
-            FileStream fileStream = null;
-            try
+            if (file.Exists)
             {
-                fileStream = file.Open(FileMode.Open);
 
-                byte[] bytes = new byte[fileStream.Length];
-                fileStream.Read(bytes, 0, (int)fileStream.Length);
-                string s = BytesToString(bytes);
-
-                return (T) TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(s);
-
-            }
-            catch
-            {
-                return default(T);
-            }
-            finally
-            {
-                if (fileStream != null)
+                FileStream fileStream = null;
+                try
                 {
-                    fileStream.Close();
-                    fileStream = null;
+                    fileStream = file.Open(FileMode.Open);
+
+                    byte[] bytes = new byte[fileStream.Length];
+                    fileStream.Read(bytes, 0, (int)fileStream.Length);
+                    string s = BytesToString(bytes);
+
+                    return (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromString(s);
+
+                }
+                catch
+                {
+                    return default(T);
+                }
+                finally
+                {
+                    if (fileStream != null)
+                    {
+                        fileStream.Close();
+                        fileStream = null;
+                    }
                 }
             }
+
+            Debug.LogWarning("Attempted to read value from non-existant file: " + file.FullName);
+
+            return default(T);
         }
 
         private static void WriteValueToFile(ValueType value, FileInfo file)
@@ -942,7 +967,10 @@ namespace TelemetryTools
         {
             directory = LocalFilePath(directory);
             if (!Directory.Exists(directory))
+            {
                 Directory.CreateDirectory(directory);
+                Debug.Log("Created directory " + directory);
+            }
 
             FilePath filePath = LocalFilePath(directory + "/" + filename);
             return new FileInfo(filePath);
@@ -956,7 +984,10 @@ namespace TelemetryTools
         {
             directory = LocalFilePath(directory);
             if (!Directory.Exists(directory))
+            {
                 Directory.CreateDirectory(directory);
+                Debug.Log("Created directory " + directory);
+            }
 
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
             sb.Append(sessionID);
@@ -973,7 +1004,7 @@ namespace TelemetryTools
 
         private static FilePath LocalFilePath(FilePath filename)
         {
-            if (Application.platform == RuntimePlatform.IPhonePlayer)
+           /* if (Application.platform == RuntimePlatform.IPhonePlayer)
             {
                 FilePath path = Application.dataPath.Substring(0, Application.dataPath.Length - 5);
                 path = path.Substring(0, path.LastIndexOf('/'));
@@ -986,13 +1017,14 @@ namespace TelemetryTools
                 return Path.Combine(path, filename);
             }
             else
-            {
+            {*/
                 //TODO: check what's going on here.
-                FilePath path = Application.dataPath;
-                path = path.Substring(0, path.LastIndexOf('/')+1);
+                FilePath path = Application.persistentDataPath + "/";
+                Debug.Log(path);
+                //path = path.Substring(0, path.LastIndexOf('/')+1);
                 //return path + filename;
                 return Path.Combine(path, filename);
-            }
+            //}
         }
 
         private bool WriteCacheFile(byte[] data, SessionID sessionID, SequenceID sequenceID)
@@ -1024,7 +1056,7 @@ namespace TelemetryTools
                     if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID))
                         DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
 #else
-                    dataLost += wwwData.Length;
+                    lostData += (uint) wwwData.Length;
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
 #endif
                 }
@@ -1034,16 +1066,20 @@ namespace TelemetryTools
 
         private static byte[] StringToBytes(string str)
         {
-            byte[] bytes = new byte[str.Length * sizeof(char)];
-            System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
-            return bytes;
+            //byte[] bytes = new byte[str.Length * sizeof(char)];
+            //System.Buffer.BlockCopy(str.ToCharArray(), 0, bytes, 0, bytes.Length);
+
+            return Encoding.ASCII.GetBytes(str);
         }
 
         private static string BytesToString(byte[] bytes)
         {
-            char[] chars = new char[bytes.Length / sizeof(char)];
-            System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
-            return new string(chars);
+            return Encoding.ASCII.GetString(bytes);
+            //return d.GetChars(bytes, 0, bytes.Length);
+            
+            //char[] chars = new char[bytes.Length / sizeof(char)];
+            //System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
+            //return new string(chars);
         }
 
         private static byte[] RemoveTrailingNulls(byte[] data)
