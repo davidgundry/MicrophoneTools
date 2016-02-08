@@ -21,6 +21,8 @@ namespace MicTools
 
     public class Telemetry : MonoBehaviour
     {
+        public bool showRates;
+
         void Update()
         {
             TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.LostData, TelemetryTools.Telemetry.Instance.LostData);
@@ -29,7 +31,13 @@ namespace MicTools
 
             TelemetryTools.Telemetry.Update();
 
-            Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
+            if (showRates)
+                Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
+        }
+
+        public void ChangeToNewKey()
+        {
+            TelemetryTools.Telemetry.Instance.ChangeToNewKey();
         }
 
         void OnDestroy()

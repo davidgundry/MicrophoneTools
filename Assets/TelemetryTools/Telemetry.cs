@@ -241,6 +241,19 @@ namespace TelemetryTools
             PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
             PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
             PlayerPrefs.Save();
+
+            SendFrame();
+
+            if (offBufferFull)
+            {
+                if (buffer1Active)
+                    offBufferFull = !SendBuffer(RemoveTrailingNulls(outboxBuffer2));
+                else
+                    offBufferFull = !SendBuffer(RemoveTrailingNulls(outboxBuffer1));
+            }
+
+            SendBuffer(GetDataInActiveBuffer());
+            bufferPos = 0;
         }
 
         public static void Update() { Instance.UpdateP(); }
@@ -1116,7 +1129,6 @@ namespace TelemetryTools
             {*/
                 //TODO: check what's going on here.
                 FilePath path = Application.persistentDataPath + "/";
-                Debug.Log(path);
                 //path = path.Substring(0, path.LastIndexOf('/')+1);
                 //return path + filename;
                 return Path.Combine(path, filename);
