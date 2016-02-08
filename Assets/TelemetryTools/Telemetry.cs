@@ -25,8 +25,11 @@ using FilePath = System.String;
 using URL = System.String;
 using SequenceID = System.Nullable<System.UInt32>;
 using SessionID = System.Nullable<System.UInt32>;
+using KeyID = System.Nullable<System.UInt32>;
 using FrameID = System.UInt32;
 using UserDataKey = System.String;
+using UniqueKey = System.String;
+
 
 
 namespace TelemetryTools
@@ -78,9 +81,13 @@ namespace TelemetryTools
 
         private const FilePath fileExtension = "telemetry";
 
+        private UniqueKey[] keys;
+        private uint usedKeys;
+        private KeyID currentKeyID;
+
 #if LOCALSAVEENABLED
         // Local
-        private readonly FilePath cacheDirectory;
+        private const FilePath cacheDirectory = "cache";
         private const FilePath cacheListFilename = "cache.txt";
         private List<FilePath> cachedFilesList;
 #endif
@@ -88,7 +95,7 @@ namespace TelemetryTools
 
 #if POSTENABLED 
         // Remote
-        private string uniqueKey;
+        //private UniqueKey uniqueKey;
         private bool httpPostEnabled = false;
         private readonly URL uploadURL;
         private readonly URL keyServer;
@@ -98,6 +105,8 @@ namespace TelemetryTools
         private SequenceID wwwSequenceID;
         private SessionID wwwSessionID;
         private bool wwwBusy = false;
+        private UniqueKey wwwKey;
+        private KeyID wwwKeyID;
 #endif
         private readonly Bytes minSendingThreshold;
         private const Bytes defaultMinSendingThreshold = 1024;
@@ -135,7 +144,7 @@ namespace TelemetryTools
         private BytesPerSecond localFileSaveRate;
         public BytesPerSecond LocalFileSaveRate { get { return LocalFileSaveRate; } }
 
-        public Telemetry(URL uploadURL, URL keyServer, FilePath cacheDirectory, KeyValuePair<string, string>[] userData, Bytes bufferSize = defaultBufferSize, Bytes frameBufferSize = defaultFrameBufferSize, Bytes minSendingThreshold = defaultMinSendingThreshold)
+        public Telemetry(URL uploadURL, URL keyServer, Bytes bufferSize = defaultBufferSize, Bytes frameBufferSize = defaultFrameBufferSize, Bytes minSendingThreshold = defaultMinSendingThreshold)
         {
             this.bufferSize = bufferSize;
             this.minSendingThreshold = minSendingThreshold;
@@ -149,7 +158,6 @@ namespace TelemetryTools
             Array.Clear(frameBuffer, 0, frameBuffer.Length);
 
 #if LOCALSAVEENABLED
-            this.cacheDirectory = cacheDirectory;
             cachedFilesList = ReadStringsFromFile(GetFileInfo(cacheDirectory, cacheListFilename));
 #endif
 
@@ -157,16 +165,45 @@ namespace TelemetryTools
             PlayerPrefs.SetInt("sessionID", (int)sessionID+1);
             PlayerPrefs.Save();
 
-
+            keys = new string[0];
 #if POSTENABLED
             this.uploadURL = uploadURL;
             this.keyServer = keyServer;
 
-            uniqueKey = PlayerPrefs.GetString("key");
-            if (!string.IsNullOrEmpty(uniqueKey))
-                httpPostEnabled = true;
+            //uniqueKey = PlayerPrefs.GetString("key");
+            int numKeys = 0;
+            if (Int32.TryParse(PlayerPrefs.GetString("numkeys"), out numKeys))
+                keys = new string[numKeys];
+
+            int usedKeysParsed;
+            if (Int32.TryParse(PlayerPrefs.GetString("usedkeys"), out usedKeysParsed))
+            {
+                usedKeys = (uint) usedKeysParsed;
+            }
+            int cki;
+            if (Int32.TryParse(PlayerPrefs.GetString("currentkeyid"), out cki))
+                currentKeyID = (UInt32)cki;
             else
-                keywww = RequestUniqueKey(this.keyServer, userData);
+            {
+                currentKeyID = 0;
+                PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
+            }
+
+            if (usedKeys == 0)
+            {
+                usedKeys = 1;
+                PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
+            }
+            PlayerPrefs.Save();
+            
+            for (int i = 0; i < keys.Length; i++)
+            {
+                keys[i] = PlayerPrefs.GetString("key" + i);
+                if (!string.IsNullOrEmpty(keys[i]))
+                    httpPostEnabled = true;
+            }
+            //if (!httpPostEnabled) //Should be handled in update as with any missing key
+            //    keywww = RequestUniqueKey(this.keyServer, GetUserData());
 #endif
 
             startTicks = System.DateTime.UtcNow.Ticks;
@@ -181,6 +218,11 @@ namespace TelemetryTools
 
         private static void SelfStart()
         {
+			instance = new Telemetry(uploadURL: "127.0.0.1", keyServer: "127.0.0.1");//"http://192.168.43.101/ttsrv/import.php", keyServer: "http://192.168.43.101/ttsrv/key.php");
+        }
+
+        private static KeyValuePair<UserDataKey, string>[] GetUserData()
+        {
             List<KeyValuePair<UserDataKey, string>> userData = new List<KeyValuePair<UserDataKey, string>>();
             userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Platform, Application.platform.ToString()));
             userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Version, Application.version));
@@ -189,9 +231,17 @@ namespace TelemetryTools
             if (Application.isWebPlayer)
                 userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
 
-			instance = new Telemetry(uploadURL: "http://192.168.43.101/ttsrv/import.php", keyServer: "http://192.168.43.101/ttsrv/key.php", cacheDirectory : "cache", userData: userData.ToArray());
+            return userData.ToArray();
         }
 
+        public void ChangeToNewKey()
+        {
+            currentKeyID = usedKeys;
+            usedKeys++;
+            PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
+            PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
+            PlayerPrefs.Save();
+        }
 
         public static void Update() { Instance.UpdateP(); }
 
@@ -207,21 +257,29 @@ namespace TelemetryTools
 
 #if POSTENABLED
             if (keywww != null)
-			{
-				bool? success = GetReturnedKey(ref keywww, ref httpPostEnabled, ref uniqueKey);
-				if (success != null)
+            {
+                UniqueKey newKey = null;
+                bool? success = GetReturnedKey(ref keywww, ref httpPostEnabled, ref newKey);
+                if (success != null)
                 {
-					if (success == true)
-					{
-	                    string[] keys = new string[1];
-	                    keys[0] = uniqueKey;
-	                    PlayerPrefs.SetString("key",uniqueKey);
-	                    PlayerPrefs.Save();
-					}
-					keywww.Dispose();
-					keywww = null;
+                    if (success == true)
+                    {
+                        //string[] keys = new string[1];
+                        //keys[0] = uniqueKey;
+                        Array.Resize(ref keys, keys.Length + 1);
+                        keys[keys.Length - 1] = newKey;
+                        PlayerPrefs.SetString("key" + (keys.Length - 1), newKey);
+                        PlayerPrefs.SetString("numkeys", keys.Length.ToString());
+                        PlayerPrefs.Save();
+                    }
+                    keywww.Dispose();
+                    keywww = null;
                 }
-			}
+            }
+            else if (usedKeys > keys.Length)
+            {
+                keywww = RequestUniqueKey(this.keyServer, GetUserData());
+            }
 
             SaveDataOnWWWErrorIfWeCan();
 
@@ -235,13 +293,19 @@ namespace TelemetryTools
                         byte[] data;
                         SessionID snID;
                         SequenceID sqID;
-                        if (LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID))
-                            if ((data.Length > 0) && (snID != null) && (sqID != null))
-                                SendByHTTPPost(data, snID, sqID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
-
-                        File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
-                        cachedFilesList.RemoveAt(0);
-
+                        KeyID keyID;
+                        if (LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID, out keyID))
+                            if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
+                            {
+                                if (keyID < keys.Length)
+                                {
+                                    SendByHTTPPost(data, snID, sqID, fileExtension, keys[(uint)keyID], keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
+                                    File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
+                                    cachedFilesList.RemoveAt(0);
+                                }
+                                else
+                                    Debug.LogWarning("KeyID " + keyID + " does not match an actual key");
+                            }
                     }
                 }
     #endif
@@ -263,11 +327,12 @@ namespace TelemetryTools
 
         private void StopP()
         {
+            SendFrame();
             byte[] dataInBuffer = GetDataInActiveBuffer();
             bool savedBuffer = false;
 
 #if LOCALSAVEENABLED
-            WriteCacheFile(dataInBuffer, sessionID, sequenceID);
+            WriteCacheFile(dataInBuffer, sessionID, sequenceID, currentKeyID);
             savedBuffer = true;
 #endif
 
@@ -281,16 +346,20 @@ namespace TelemetryTools
             {
     #if LOCALSAVEENABLED
                 if (!www.isDone)
-                    WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID);
+                    WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID);
     #endif
                 DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
             }
 
             if (httpPostEnabled)
             {
-                WWW stopwww = null;
-                SendByHTTPPost(dataInBuffer, sessionID, sequenceID, fileExtension, uniqueKey, uploadURL, ref stopwww, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
-                savedBuffer = true;
+                if (currentKeyID != null)
+                    if (currentKeyID < keys.Length)
+                    {
+                        WWW stopwww = null;
+                        SendByHTTPPost(dataInBuffer, sessionID, sequenceID, fileExtension, keys[(uint) currentKeyID], currentKeyID, uploadURL, ref stopwww, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
+                        savedBuffer = true;
+                    }
             }
 #endif
 
@@ -323,15 +392,19 @@ namespace TelemetryTools
 
                 if (!wwwBusy)
                 {
-                    SendByHTTPPost(data, sessionID, sequenceID, fileExtension, uniqueKey, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy);
-                    dataSentByHTTPSinceUpdate += (uint) data.Length;
-                    sequenceID++;
-                    return true;
+                    if (currentKeyID != null)
+                        if (currentKeyID < keys.Length)
+                        {
+                            SendByHTTPPost(data, sessionID, sequenceID, fileExtension, keys[(uint) currentKeyID], currentKeyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
+                            dataSentByHTTPSinceUpdate += (uint)data.Length;
+                            sequenceID++;
+                            return true;
+                        }
                 }
             }
 #endif
 #if LOCALSAVEENABLED
-            if (WriteCacheFile(data, sessionID, sequenceID))
+            if (WriteCacheFile(data, sessionID, sequenceID, currentKeyID))
             {
                 sequenceID++;
                 return true;
@@ -509,6 +582,17 @@ namespace TelemetryTools
             SendValue(key, value, System.DateTime.UtcNow.Ticks);
         }
 
+        public void SendStreamString(string key, string value)
+        {
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.Append(",\"");
+            sb.Append(key);
+            sb.Append("\":\"");
+            sb.Append(value);
+            sb.Append("\"");
+            BufferData(StringToBytes(sb.ToString()));
+        }
+
 
         public void SendStreamValue(string key, ValueType value)
         {
@@ -664,13 +748,16 @@ namespace TelemetryTools
                                             SessionID sessionID,
                                             SequenceID sequenceID,
                                             FilePath fileExtension,
-                                            string uniqueKey,
+                                            UniqueKey uniqueKey,
+                                            KeyID uniqueKeyID,
                                             URL uploadURL,
                                             ref WWW www,
                                             out byte[] wwwData,
                                             out SequenceID wwwSequenceID,
                                             out SessionID wwwSessionID,
-                                            out bool wwwBusy)
+                                            out bool wwwBusy,
+                                            out UniqueKey wwwKey,
+                                            out KeyID wwwKeyID)
         {
 
             WWWForm form = new WWWForm();
@@ -690,6 +777,8 @@ namespace TelemetryTools
             System.Buffer.BlockCopy(data, 0, wwwData, 0, data.Length);
             wwwSequenceID = sequenceID;
             wwwSessionID = sessionID;
+            wwwKey = uniqueKey;
+            wwwKeyID = uniqueKeyID;
         }
 
         private static bool HandleWWWErrors(ref WWW www, ref byte[] wwwData, ref SessionID wwwSessionID, ref SequenceID wwwSequenceID, ref bool wwwBusy)
@@ -785,25 +874,29 @@ namespace TelemetryTools
             }
         }
 
-        private static bool LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID)
+        private static bool LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID, out KeyID keyID)
         {
             data = new byte[0];
             sessionID = null;
             sequenceID = null;
+            keyID = null;
             directory = LocalFilePath(directory);
             if (Directory.Exists(directory))
             {
                 uint sqID = 0;
                 uint snID = 0;
+                uint kID = 0;
                 string[] separators = new string[1];
                 separators[0] = ".";
                 string[] fileDetails = filename.Split(separators, 3, System.StringSplitOptions.None);
-                bool parsed = UInt32.TryParse(fileDetails[0], out snID) && UInt32.TryParse(fileDetails[1], out sqID);
+                bool parsed = UInt32.TryParse(fileDetails[0], out snID) && UInt32.TryParse(fileDetails[1], out sqID) && UInt32.TryParse(fileDetails[2], out kID);
 
                 if (parsed)
                 {
                     sessionID = snID;
                     sequenceID = sqID;
+                    keyID = kID;
+
                     FilePath cacheFile = directory + "/" + filename;
                     if (File.Exists(cacheFile))
                     {
@@ -979,6 +1072,7 @@ namespace TelemetryTools
         private static FileInfo GetFileInfo(FilePath directory,
                                             SessionID sessionID,
                                             SequenceID sequenceID,
+                                            KeyID keyID,
                                             long time,
                                             FilePath fileExtension)
         {
@@ -993,6 +1087,8 @@ namespace TelemetryTools
             sb.Append(sessionID);
             sb.Append(".");
             sb.Append(sequenceID);
+            sb.Append(".");
+            sb.Append(keyID);
             sb.Append(".");
             sb.Append(time);
             sb.Append(".");
@@ -1027,9 +1123,9 @@ namespace TelemetryTools
             //}
         }
 
-        private bool WriteCacheFile(byte[] data, SessionID sessionID, SequenceID sequenceID)
+        private bool WriteCacheFile(byte[] data, SessionID sessionID, SequenceID sequenceID, KeyID key)
         {
-                FileInfo file = GetFileInfo(cacheDirectory, sessionID, sequenceID, GetTimeFromStart(), fileExtension);
+                FileInfo file = GetFileInfo(cacheDirectory, sessionID, sequenceID, key, GetTimeFromStart(), fileExtension);
                 if ((!File.Exists(file.FullName)) || (!IsFileOpen(file)))
                 {
                     WriteDataToFile(data, file);
@@ -1053,7 +1149,7 @@ namespace TelemetryTools
                 if (!HandleWWWErrors(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy))
                 {
 #if LOCALSAVEENABLED
-                    if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID))
+                    if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID))
                         DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
 #else
                     lostData += (uint) wwwData.Length;
