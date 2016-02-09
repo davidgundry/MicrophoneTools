@@ -217,7 +217,7 @@ namespace TelemetryTools
                 currentKeyID = 0;
                 PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
             }
-            userData = LoadUserData(currentKeyID, userDataDirectory);
+            userData = LoadUserData(currentKeyID);
 
             if (usedKeys == 0)
             {
@@ -276,7 +276,7 @@ namespace TelemetryTools
             {
                 SaveUserData(userDataDirectory, currentKeyID, userData);
                 currentKeyID = key;
-                userData = LoadUserData(currentKeyID, userDataDirectory);
+                userData = LoadUserData(currentKeyID);
 
                 PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
                 PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
@@ -452,21 +452,47 @@ namespace TelemetryTools
 
         public void UploadUserData()
         {
-            SendUserDataByHTTPPost(userDataURL, userData, CurrentKey, currentKeyID, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
+            UploadUserData(currentKeyID);
         }
+
+        public void UploadUserData(KeyID key)
+        {
+            if (key < NumberOfKeys)
+            {
+                if (key == currentKeyID)
+                    SendUserDataByHTTPPost(userDataURL, userData, keys[(int)key], key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
+                else
+                    SendUserDataByHTTPPost(userDataURL, LoadUserData(key), keys[(int)key], key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
+            }
+        }
+
+        /*public void UploadBacklogOfUserData()
+        {
+            for (uint i = 0; i < NumberOfKeys; i++)
+            {
+                if (userDatawwwBusy)
+                    break;
+                SendUserDataByHTTPPost(userDataURL, LoadUserData(i), keys[i], i, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
+            }
+        }*/
 
         private static void SendUserDataByHTTPPost(URL userDataURL, Dictionary<UserDataKey,string> userData, UniqueKey uniqueKey, KeyID keyID, ref WWW userDatawww, ref bool userDatawwwBusy, ref KeyID userDatawwwKeyID)
         {
             if (!String.IsNullOrEmpty(uniqueKey))
             {
-                WWWForm form = new WWWForm();
-                form.AddField("key", uniqueKey);
-                foreach (string key in userData.Keys)
-                    form.AddField(key, userData[key]);
+                if (userData.Count > 0)
+                {
+                    WWWForm form = new WWWForm();
+                    form.AddField("key", uniqueKey);
+                    foreach (string key in userData.Keys)
+                        form.AddField(key, userData[key]);
 
-                userDatawww = new WWW(userDataURL, form);
-                userDatawwwBusy = true;
-                userDatawwwKeyID = keyID;
+                    userDatawww = new WWW(userDataURL, form);
+                    userDatawwwBusy = true;
+                    userDatawwwKeyID = keyID;
+                }
+                else
+                    Debug.LogWarning("Cannot send empty user data to server");
             }
             else
                 Debug.LogWarning("Cannot send user data to server without a key");
@@ -497,7 +523,7 @@ namespace TelemetryTools
             }
         }
 
-        private static Dictionary<UserDataKey, string> LoadUserData(KeyID keyIDToLoad, FilePath userDataDirectory)
+        private static Dictionary<UserDataKey, string> LoadUserData(KeyID keyIDToLoad)
         {
             List<string> strings = ReadStringsFromFile(GetFileInfo(userDataDirectory, keyIDToLoad.ToString() + "." + userDataFileExtension));
             Dictionary<UserDataKey,string> userData = new Dictionary<UserDataKey,string>();
