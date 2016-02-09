@@ -8,7 +8,22 @@ namespace TelemetryTools
 
         public void ChangeToNewKey()
         {
-            ChangeToNewKey();
+            TelemetryTools.Telemetry.Instance.ChangeToNewKey();
+        }
+
+        public void ChangeToKey(uint key)
+        {
+            TelemetryTools.Telemetry.Instance.ChangeToKey(key);
+        }
+
+        public void UpdateUserData(string key, string value)
+        {
+            TelemetryTools.Telemetry.Instance.UpdateUserData(key, value);
+        }
+
+        public void UploadUserData()
+        {
+            TelemetryTools.Telemetry.Instance.UploadUserData();
         }
 
         void Awake()
