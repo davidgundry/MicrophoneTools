@@ -31,9 +31,26 @@ using UserDataKey = System.String;
 using UniqueKey = System.String;
 
 
-
 namespace TelemetryTools
 {
+    public static class LogTT
+    {
+        public static void Log(string text)
+        {
+            //if (Debug.isDebugBuild)
+            //    Debug.Log(text);
+        }
+        public static void LogWarning(string text)
+        {
+            //if (Debug.isDebugBuild)
+           //     Debug.LogWarning(text);
+        }
+        public static void LogError(string text)
+        {
+            //if (Debug.isDebugBuild)
+           //     Debug.LogError(text);
+        }
+    }
 
     public static class Event
     {
@@ -243,7 +260,7 @@ namespace TelemetryTools
             SendKeyValuePair(Event.TelemetryStart, System.DateTime.UtcNow.ToString("u"));
 
 
-            Debug.Log("Persistant Data Path: " + Application.persistentDataPath);
+            LogTT.Log("Persistant Data Path: " + Application.persistentDataPath);
         }
 
         private static void SelfStart()
@@ -364,7 +381,7 @@ namespace TelemetryTools
                                     cachedFilesList.RemoveAt(0);
                                 }
                                 else
-                                    Debug.LogWarning("KeyID " + keyID + " does not match an actual key");
+                                    LogTT.LogWarning("KeyID " + keyID + " does not match an actual key");
                             }
                     }
                 }
@@ -492,10 +509,10 @@ namespace TelemetryTools
                     userDatawwwKeyID = keyID;
                 }
                 else
-                    Debug.LogWarning("Cannot send empty user data to server");
+                    LogTT.LogWarning("Cannot send empty user data to server");
             }
             else
-                Debug.LogWarning("Cannot send user data to server without a key");
+                LogTT.LogWarning("Cannot send user data to server without a key");
         }
 
         private static void SaveUserData(FilePath userDataDirectory, KeyID currentKeyID, Dictionary<UserDataKey,string> userData)
@@ -543,7 +560,7 @@ namespace TelemetryTools
             {
                 if ((userDatawww.isDone) && (!string.IsNullOrEmpty(userDatawww.error)))
                 {
-                    Debug.LogWarning("Send User Data Error: " + userDatawww.error);
+                    LogTT.LogWarning("Send User Data Error: " + userDatawww.error);
                     userDatawwwBusy = false;
                     return false;
                 }
@@ -551,7 +568,7 @@ namespace TelemetryTools
                 {
                     if (!string.IsNullOrEmpty(userDatawww.text.Trim()))
                     {
-                        Debug.LogWarning("Response from server: " + userDatawww.text);
+                        LogTT.LogWarning("Response from server: " + userDatawww.text);
                     }
                     if (wwwKeyID == currentKeyID)
                         userData.Clear();
@@ -594,7 +611,7 @@ namespace TelemetryTools
                 }
 #endif
 
-            Debug.LogWarning("Could not deal with buffer: " + BytesToString(data));
+            LogTT.LogWarning("Could not deal with buffer: " + BytesToString(data));
 
             return false;
         }
@@ -616,7 +633,7 @@ namespace TelemetryTools
                 {
                     if (offBufferFull)
                     {
-                        Debug.LogWarning("Overflow local telemetry buffer, data overwritten");
+                        LogTT.LogWarning("Overflow local telemetry buffer, data overwritten");
                         if (buffer1Active)
                             lostData += (uint) RemoveTrailingNulls(outboxBuffer2).Length;
                         else
@@ -650,7 +667,7 @@ namespace TelemetryTools
             }
             else
             {
-                Debug.LogWarning("Overflow frame buffer, data lost");
+                LogTT.LogWarning("Overflow frame buffer, data lost");
                 lostData += (uint) data.Length;
             }
         }
@@ -967,14 +984,14 @@ namespace TelemetryTools
             {
                 if ((www.isDone) && (!string.IsNullOrEmpty(www.error)))
                 {
-                    Debug.LogWarning("Send Data Error: " + www.error);
+                    LogTT.LogWarning("Send Data Error: " + www.error);
                     return false;
                 }
                 else if (www.isDone)
 				{
 					if (!string.IsNullOrEmpty(www.text.Trim()))
 					{
-						Debug.LogWarning ("Response from server: " + www.text);
+						LogTT.LogWarning ("Response from server: " + www.text);
 					}
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
 				}
@@ -1005,20 +1022,20 @@ namespace TelemetryTools
 						if (keywww.text.StartsWith("key:"))
 						{
 							uniqueKey = keywww.text.Substring(4);
-							Debug.Log("Key retrieved: " + uniqueKey);
+							LogTT.Log("Key retrieved: " + uniqueKey);
 							httpPostEnabled = true;
 							return true;
 						}
 						else
 						{
-							Debug.LogWarning("Invalid key retrieved: " +  keywww.text);
+							LogTT.LogWarning("Invalid key retrieved: " +  keywww.text);
 							//httpPostEnabled = false;
 							return false;
 						}
                     }
                     else
                     {
-                        Debug.LogWarning("Error connecting to key server");
+                        LogTT.LogWarning("Error connecting to key server");
                         //httpPostEnabled = false;
 						return false;
                     }
@@ -1085,7 +1102,7 @@ namespace TelemetryTools
                     }
                     else
                     {
-                        Debug.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
+                        LogTT.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
                         return false;
                     }
                 }
@@ -1140,7 +1157,7 @@ namespace TelemetryTools
                     list = new List<FilePath>(lines);
                     return list;
                 }
-                catch (IOException ex)
+                catch (IOException)
                 {
                     return list;
                 }
@@ -1153,7 +1170,7 @@ namespace TelemetryTools
                     }
                 }
             }
-            Debug.LogWarning("Attempted to read strings from non-existant file: " + file.FullName);
+            LogTT.LogWarning("Attempted to read strings from non-existant file: " + file.FullName);
             return list;
         }
 
@@ -1188,7 +1205,7 @@ namespace TelemetryTools
                 }
             }
 
-            Debug.LogWarning("Attempted to read value from non-existant file: " + file.FullName);
+            LogTT.LogWarning("Attempted to read value from non-existant file: " + file.FullName);
 
             return default(T);
         }
@@ -1242,7 +1259,7 @@ namespace TelemetryTools
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-                Debug.Log("Created directory " + directory);
+                LogTT.Log("Created directory " + directory);
             }
 
             FilePath filePath = LocalFilePath(directory + "/" + filename);
@@ -1260,7 +1277,7 @@ namespace TelemetryTools
             if (!Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
-                Debug.Log("Created directory " + directory);
+                LogTT.Log("Created directory " + directory);
             }
 
             System.Text.StringBuilder sb = new System.Text.StringBuilder();

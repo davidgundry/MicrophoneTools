@@ -78,7 +78,8 @@ namespace MicTools
             }
         }
 
-        public float normalisedPeakAutocorrelation;
+        private float normalisedPeakAutocorrelation;
+        public float NormalisedPeakAutocorrelation { get { return normalisedPeakAutocorrelation; } }
 
         public bool test;
 
@@ -168,13 +169,13 @@ namespace MicTools
             elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
-                TelemetryTools.Telemetry.Instance.SendStreamValue("et", elapsedTime);
+                //TelemetryTools.Telemetry.Instance.SendStreamValue("et", elapsedTime);
                 float[] window = NewWindow();
 
                 if (window.Length > 0)
                 {
                     Algorithm(window);
-                    TelemetryTools.Telemetry.Instance.SendByteDataBase64("audio", EncodeFloatBlockToRawAudioBytes(window));
+                    /*TelemetryTools.Telemetry.Instance.SendByteDataBase64("audio", EncodeFloatBlockToRawAudioBytes(window));
                     TelemetryTools.Telemetry.Instance.SendStreamValue("npa", normalisedPeakAutocorrelation);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", level);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("noi", noiseIntensity);
@@ -187,11 +188,11 @@ namespace MicTools
                     TelemetryTools.Telemetry.Instance.SendStreamValue("idt", inputDetectionTimeout);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("ssf", samplesSoFar);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("wsf", windowsSoFar);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("ind", Convert.ToInt32(inputDetected));
+                    TelemetryTools.Telemetry.Instance.SendStreamValue("ind", Convert.ToInt32(inputDetected));*/
                 }
             }
 
-            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.DeltaTime, Time.deltaTime);
+            //TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.DeltaTime, Time.deltaTime);
         }
         
 
@@ -216,10 +217,10 @@ namespace MicTools
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
                 FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow);
-                normalisedPeakAutocorrelation = NormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
+                normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
                 // but kills detection on phone
 
-                //if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
+                if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
                 
 
@@ -251,7 +252,7 @@ namespace MicTools
         ///     Calculates the peak of the normalised autocorrelation of a window of samples,
         ///     with an offset within a given band.
         /// </summary>
-        private float NormalisedPeakAutocorrelation(float[] window,
+        private float DoNormalisedPeakAutocorrelation(float[] window,
                                                     float mean,
                                                     int sampleOffsetHigh,
                                                     int sampleOffsetLow)

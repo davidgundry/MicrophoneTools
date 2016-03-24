@@ -34,7 +34,7 @@ namespace WordPlane
         {
             playerBehaviour = player.GetComponent<PlayerBehaviour>();
 
-            stimulusScript = GameObject.Find("Stimulus").GetComponent<StimulusScript>();
+            //stimulusScript = GameObject.Find("Stimulus").GetComponent<StimulusScript>();
 
             microphoneController = GetComponent<MicTools.MicrophoneController>();
             microphoneInput = GetComponent<MicTools.MicrophoneInput>();
@@ -44,6 +44,13 @@ namespace WordPlane
 
         void Update()
         {
+            TelemetryTools.Telemetry.Instance.SendFrame();
+            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.DeltaTime, Time.deltaTime);
+            TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", microphoneInput.Level);
+            TelemetryTools.Telemetry.Instance.SendStreamValue("npa", microphoneInput.NormalisedPeakAutocorrelation);
+            TelemetryTools.Telemetry.Instance.SendStreamValue("noi", microphoneInput.NoiseIntensity);
+
+
             if ((playerBehaviour.PlayerState == PlayerState.Flying) || (playerBehaviour.PlayerState == PlayerState.TakingOff) || (playerBehaviour.PlayerState == PlayerState.Landing))
             {
                 distance = player.position.x - lastTakeoffX;
@@ -63,8 +70,6 @@ namespace WordPlane
             }
 
             //HumInput();
-
-
 
             if (Input.GetKey("space"))
                 InputEvent();
@@ -114,25 +119,25 @@ namespace WordPlane
         public void TakeOff()
         {
             lastTakeoffX = player.position.x;
-            Debug.Log("Takeoff!");
+            TelemetryTools.Telemetry.Instance.SendEvent("Takeoff");
         }
 
         public void EnterRunway()
         {
             lastTakeoffX = player.position.x;
             distance = 0;
-            Debug.Log("Enter Runway!");
+            TelemetryTools.Telemetry.Instance.SendEvent("Enter Runway");
         }
 
         public void RunwayCheckpoint()
         {
             lastTakeoffX = player.position.x;
-            Debug.Log("Runway Checkpoint!");
+            TelemetryTools.Telemetry.Instance.SendEvent("Runway Checkpoint");
         }
 
         public void FlyingStart()
         {
-            Debug.Log("Flying Start!");
+            TelemetryTools.Telemetry.Instance.SendEvent("Flying Start");
         }
 
         public void TouchDown()
@@ -142,14 +147,14 @@ namespace WordPlane
                 NewBestDistance((int)distance * 5);
 
             AddRunway(10);
-            Debug.Log("Touch Down!");
+            TelemetryTools.Telemetry.Instance.SendEvent("Touch Down");
             playerBehaviour.speedMultiplier = 1;
         }
 
         public void InputEvent()
         {
             playerBehaviour.Thrust();
-            stimulusScript.newInput = true;
+            //stimulusScript.newInput = true;
         }
 
         public void AddPoints(int points)
