@@ -175,6 +175,7 @@ namespace MicTools
                 if (window.Length > 0)
                 {
                     Algorithm(window);
+
                     /*TelemetryTools.Telemetry.Instance.SendByteDataBase64("audio", EncodeFloatBlockToRawAudioBytes(window));
                     TelemetryTools.Telemetry.Instance.SendStreamValue("npa", normalisedPeakAutocorrelation);
                     TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", level);
@@ -200,7 +201,7 @@ namespace MicTools
         {
             samples = data.Length;
             float sumIntensity = 0;
-            if (!SinglePolaity(data))
+            if (!SinglePolaity(data)) // Here to easily take out artifacts found on my poor desktop mic
             {
                 sumIntensity = SumAbsIntensity(data);
                 level = sumIntensity / data.Length;
@@ -219,11 +220,10 @@ namespace MicTools
                 FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow);
                 normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
                 // but kills detection on phone
+                // and performance!? - unless window size is limited to keep low the iterations
 
-                if (normalisedPeakAutocorrelation > 0.6f) // If we're using the periodicity, check that the normalised value is high before considering it
+                if (normalisedPeakAutocorrelation > 0.5f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
-                
-
 
                 if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
                     DetectSyllables();
@@ -235,7 +235,7 @@ namespace MicTools
         }
 
         //Not sure I'm doing the right thing here...
-        private void FrequencyBandToSampleOffsets(int windowSize,
+        private static void FrequencyBandToSampleOffsets(int windowSize,
                                                   int sampleRate, 
                                                   float lowFrequencyBound,
                                                   float highFrequencyBound,
@@ -252,31 +252,33 @@ namespace MicTools
         ///     Calculates the peak of the normalised autocorrelation of a window of samples,
         ///     with an offset within a given band.
         /// </summary>
-        private float DoNormalisedPeakAutocorrelation(float[] window,
-                                                    float mean,
-                                                    int sampleOffsetHigh,
-                                                    int sampleOffsetLow)
+        private static float DoNormalisedPeakAutocorrelation(float[] window,
+                                                     float mean,
+                                                     int sampleOffsetHigh,
+                                                     int sampleOffsetLow)
         {
             float highest = 0;
+
+            int windowLength = Math.Min(window.Length, 64); // If we keep the window size really small, it works on the phone. Seems to still do the jon. What effect is this having?
 
             for (int h = sampleOffsetHigh; h >= sampleOffsetLow; h--)
             {
                 float sum = 0;
-                for (int t = 0; t < window.Length - h; t++)
+                for (int t = 0; t < windowLength - h; t++)
                     sum += (window[t + h] - mean) * (window[t] - mean);
 
-                float gamma = (sum / window.Length) / (window.Length - h);
+                float gamma = (sum / windowLength) / (windowLength - h);
                 if (gamma > highest)
                     highest = gamma;
             }
 
             // Here we normalise the peak value so it is between 0 and 1
             float sumZero = 0;
-            for (int t = 0; t < window.Length - 0; t++)
+            for (int t = 0; t < windowLength - 0; t++)
                 sumZero += window[t + 0] * window[t];
 
-            float gammaZero = sumZero / window.Length;
-            float normalised = highest / (gammaZero / window.Length);
+            float gammaZero = sumZero / windowLength;
+            float normalised = highest / (gammaZero / windowLength);
 
             return normalised;
         }
@@ -356,7 +358,7 @@ namespace MicTools
 
         private void DetectSyllables()
         {
-            if (level > noiseIntensity + standardDeviation)//* highActivationMultiple))
+            if (level > noiseIntensity + standardDeviation/2)//* highActivationMultiple))
             {
                 if (!syllable)
                 {
@@ -365,7 +367,7 @@ namespace MicTools
                 }
             }
 
-            if (level < noiseIntensity + standardDeviation)//* deactivationMultiple))
+            if (level < noiseIntensity + standardDeviation/2)//* deactivationMultiple))
             {
                 if (syllable)
                 {
