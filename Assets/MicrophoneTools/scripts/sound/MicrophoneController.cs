@@ -19,13 +19,7 @@ namespace MicTools
         private bool microphoneAvailable = true;
         private bool authorizationRequestSent = false;
         private bool microphoneDeviceSet = false;
-        public bool MicrophoneDeviceSet
-        {
-            get
-            {
-                return microphoneDeviceSet;
-            }
-        }
+        public bool MicrophoneDeviceSet { get { return microphoneDeviceSet; } }
         private bool prewarned = false;
         private bool prewarningSent = false;
 
@@ -33,21 +27,9 @@ namespace MicTools
         private bool listening = false;
         private const int defaultSampleRate = 44100;
         public int sampleRate = defaultSampleRate;
-        public int SampleRate
-        {
-            get
-            {
-                return sampleRate;
-            }
-        }
+        public int SampleRate { get { return sampleRate; } }
         private int channels = 0;
-        public int Channels
-        {
-            get
-            {
-                return channels;
-            }
-        }
+        public int Channels { get { return channels; } }
 
         private MicrophoneUI microphoneUI;
 

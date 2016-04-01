@@ -17,13 +17,7 @@ namespace MicTools
         public float caution;
         public int syllables = 0;
         private bool syllable = false;
-        public bool Syllable
-        {
-            get
-            {
-                return syllable;
-            }
-        }
+        public bool Syllable { get {  return syllable; } }
 
         public const float activationMultiple = 1;//1.5848931924611136f;//unfiltered = 1; //0dB   filtered = 1.5848931924611136f;  //2dB
         public const float highActivationMultiple = 1.5848931924611136f; //1.9952623149688797f; //3dB
@@ -42,41 +36,17 @@ namespace MicTools
         private int inputDetectionTimeout = 0;
 
         private float noiseIntensity;
-        public float NoiseIntensity
-        {
-            get
-            {
-                return noiseIntensity;
-            }
-        }
+        public float NoiseIntensity { get { return noiseIntensity; } }
         private float standardDeviation;
-        public float StandardDeviation
-        {
-            get
-            {
-                return standardDeviation;
-            }
-        }
+        public float StandardDeviation { get { return standardDeviation; } }
 
         private int samplesSoFar = 0;
         private int windowsSoFar = 0;
 
         private bool inputDetected;
-        public bool InputDetected
-        {
-            get
-            {
-                return inputDetected;
-            }
-        }
+        public bool InputDetected { get { return inputDetected; } }
         private float level = 0;
-        public float Level
-        {
-            get
-            {
-                return level;
-            }
-        }
+        public float Level { get { return level; } }
 
         private float normalisedPeakAutocorrelation;
         public float NormalisedPeakAutocorrelation { get { return normalisedPeakAutocorrelation; } }

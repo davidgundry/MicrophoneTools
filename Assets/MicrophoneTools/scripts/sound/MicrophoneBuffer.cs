@@ -7,23 +7,10 @@ namespace MicTools
     [AddComponentMenu("MicrophoneTools/MicrophoneBuffer")]
     public class MicrophoneBuffer : MonoBehaviour
     {
-
         private float[] buffer;
-        public float[] Buffer
-        {
-            get
-            {
-                return buffer;
-            }
-        }
+        public float[] Buffer { get { return buffer; } }
         private int bufferPos;
-        public int BufferPos
-        {
-            get
-            {
-                return bufferPos;
-            }
-        }
+        public int BufferPos { get { return bufferPos; } }
 
         private bool audioPlaying = false;
 
