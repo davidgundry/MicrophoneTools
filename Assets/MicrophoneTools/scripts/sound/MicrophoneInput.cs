@@ -52,9 +52,14 @@ namespace MicTools
 
         public bool test;
 
+        public float pitch;
+
+        private Yin yin;
+
         void Start()
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
+            yin = new Yin(48000, 2048);
         }
 
         private int TestHarness()
@@ -139,6 +144,9 @@ namespace MicTools
             if (elapsedTime > timeStep)
             {
                 float[] window = NewWindow();
+
+                if (window.Length == 2048)
+                    pitch = yin.getPitch(window);
 
                 if (window.Length > 0)
                 {
