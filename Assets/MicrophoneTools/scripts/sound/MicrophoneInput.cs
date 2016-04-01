@@ -214,7 +214,6 @@ namespace MicTools
             float timeStepsPerSecond = 1 / ((float) windowSize / (float) sampleRate);
             sampleOffsetHigh = (int)(windowSize * (timeStepsPerSecond / lowFrequencyBound));
             sampleOffsetLow = (int)(windowSize * (timeStepsPerSecond / highFrequencyBound));
-            //LogMT.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
         }
 
         /// <summary>
@@ -230,6 +229,8 @@ namespace MicTools
 
             int windowLength = Math.Min(window.Length, 64); // If we keep the window size really small, it works on the phone. Seems to still do the jon. What effect is this having?
 
+            float[] gammaA = new float[windowLength];
+
             for (int h = sampleOffsetHigh; h >= sampleOffsetLow; h--)
             {
                 float sum = 0;
@@ -239,6 +240,8 @@ namespace MicTools
                 float gamma = (sum / windowLength) / (windowLength - h);
                 if (gamma > highest)
                     highest = gamma;
+
+                gammaA[h] = gamma;
             }
 
             // Here we normalise the peak value so it is between 0 and 1
@@ -248,6 +251,10 @@ namespace MicTools
 
             float gammaZero = sumZero / windowLength;
             float normalised = highest / (gammaZero / windowLength);
+
+            LogMT.SendStreamValue("MTsoL", sampleOffsetLow);
+            LogMT.SendStreamValue("MTsoH", sampleOffsetHigh);
+            LogMT.SendStreamValueBlock("MTatc", gammaA);
 
             return normalised;
         }

@@ -83,6 +83,7 @@ namespace MicTools
 
         void OnSoundEvent(SoundEvent soundEvent)
         {
+            LogMT.Log(soundEvent.ToString());
             switch (soundEvent)
             {
                 case SoundEvent.PermissionGranted:
