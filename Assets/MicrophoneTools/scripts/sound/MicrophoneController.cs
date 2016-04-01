@@ -42,14 +42,14 @@ namespace MicTools
                 prewarned = !microphoneUI.AskPermission();
             else
             {
-                Debug.Log("No UI detected, defulting to skip permission step");
+                LogMT.Log("No UI detected, defulting to skip permission step");
                 prewarned = true;
             }
 
 
             if (FindObjectOfType<AudioListener>() == null)
             {
-                Debug.LogWarning("MicrophoneController: No AudioListener found, creating one");
+                LogMT.LogWarning("MicrophoneController: No AudioListener found, creating one");
                 GameObject audioListener = new GameObject();
                 audioListener.name = "AudioListener";
                 audioListener.AddComponent<AudioListener>();
@@ -57,7 +57,7 @@ namespace MicTools
 
             AudioMixer audioMixer = Resources.Load("MicrophoneToolsMixer") as AudioMixer;
             if (audioMixer == null)
-                Debug.LogError("MicrophoneController: Could not find Audio Mixer");
+                LogMT.LogError("MicrophoneController: Could not find Audio Mixer");
 
             audioSource = this.GetComponent<AudioSource>();
             audioSource.playOnAwake = false;
@@ -124,14 +124,14 @@ namespace MicTools
                         {
                             if (microphoneUI != null)
                                 microphoneUI.NoMicrophonesFound();
-                            Debug.LogWarning("MicrophoneController: No microphones found");
+                            LogMT.LogWarning("MicrophoneController: No microphones found");
                             microphoneAvailable = false;
                         }
                     }
                     else if (!authorizationRequestSent)
                     {
                         Application.RequestUserAuthorization(UserAuthorization.Microphone);
-                        Debug.Log("MicrophoneController: User authorization requested for microphone");
+                        LogMT.Log("MicrophoneController: User authorization requested for microphone");
                         authorizationRequestSent = true;
                     }
                 }
@@ -151,7 +151,7 @@ namespace MicTools
             {
                 if (microphoneActive)
                 {
-                    Debug.LogWarning("MicrophoneController: Microphone active yet no microphone device set!");
+                    LogMT.LogWarning("MicrophoneController: Microphone active yet no microphone device set!");
                     microphoneActive = false;
                 }
             }
@@ -229,15 +229,15 @@ namespace MicTools
                 if ((id >= 0) && (Microphone.devices.Length > 0))
                 {
                     microphoneDeviceName = Microphone.devices[0];
-                    Debug.Log("MicrophoneController: Using microphone: " + microphoneDeviceName);
+                    LogMT.Log("MicrophoneController: Using microphone: " + microphoneDeviceName);
                     microphoneDeviceSet = true;
                     SetSamplingRate();
                 }
                 else
-                    Debug.LogError("MicrophoneController: Cannot set device: Device not available", this);
+                    LogMT.LogError("MicrophoneController: Cannot set device: Device not available", this);
             }
             else
-                Debug.LogError("MicrophoneController: Cannot set device: User Authorization required", this);
+                LogMT.LogError("MicrophoneController: Cannot set device: User Authorization required", this);
         }
 
         /*
@@ -252,13 +252,13 @@ namespace MicTools
                     microphoneDeviceName = "";
                     microphoneDeviceSet = true;
                     SetSamplingRate();
-                    Debug.Log("MicrophoneController: Using default microphone");
+                    LogMT.Log("MicrophoneController: Using default microphone");
                 }
                 else
-                    Debug.LogError("MicrophoneController: Cannot set device: No devices available", this);
+                    LogMT.LogError("MicrophoneController: Cannot set device: No devices available", this);
             }
             else
-                Debug.LogError("MicrophoneController: Cannot set device: User Authorization required", this);
+                LogMT.LogError("MicrophoneController: Cannot set device: User Authorization required", this);
         }
 
         /*
@@ -286,7 +286,7 @@ namespace MicTools
             else if (defaultSampleRate > max)
                 sampleRate = max;
 
-            Debug.Log("MicrophoneController: Sampling rate: " + sampleRate);
+            LogMT.Log("MicrophoneController: Sampling rate: " + sampleRate);
         }
 
 

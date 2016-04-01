@@ -9,7 +9,6 @@ namespace MicTools
     [AddComponentMenu("MicrophoneTools/MicrophoneInput")]
     public class MicrophoneInput : MonoBehaviour
     {
-
         public int samples;
 
         private MicrophoneBuffer microphoneBuffer;
@@ -132,38 +131,38 @@ namespace MicTools
         {
             if (test)
             {
-                Debug.Log("Syllables: " + TestHarness());
+                LogMT.Log("Syllables: " + TestHarness());
                 test = false;
             }
 
             elapsedTime += Time.deltaTime;
             if (elapsedTime > timeStep)
             {
-                //TelemetryTools.Telemetry.Instance.SendStreamValue("et", elapsedTime);
+                LogMT.SendStreamValue("MTet", elapsedTime);
                 float[] window = NewWindow();
 
                 if (window.Length > 0)
                 {
                     Algorithm(window);
 
-                    /*TelemetryTools.Telemetry.Instance.SendByteDataBase64("audio", EncodeFloatBlockToRawAudioBytes(window));
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("npa", normalisedPeakAutocorrelation);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", level);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("noi", noiseIntensity);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("sd", standardDeviation);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("pek", peak);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("dip", dip);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("dpd", Convert.ToInt32(dipped));
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("sbs", syllables);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("slb", Convert.ToInt32(syllable));
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("idt", inputDetectionTimeout);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("ssf", samplesSoFar);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("wsf", windowsSoFar);
-                    TelemetryTools.Telemetry.Instance.SendStreamValue("ind", Convert.ToInt32(inputDetected));*/
+                    LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
+                    LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
+                    LogMT.SendStreamValue("MTlvl", level);
+                    LogMT.SendStreamValue("MTnoi", noiseIntensity);
+                    LogMT.SendStreamValue("MTsd", standardDeviation);
+                    LogMT.SendStreamValue("MTpek", peak);
+                    LogMT.SendStreamValue("MTdip", dip);
+                    LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
+                    LogMT.SendStreamValue("MTsbs", syllables);
+                    LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
+                    LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
+                    LogMT.SendStreamValue("MTssf", samplesSoFar);
+                    LogMT.SendStreamValue("MTwsf", windowsSoFar);
+                    LogMT.SendStreamValue("MTind", Convert.ToInt32(inputDetected));
                 }
             }
 
-            //TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.DeltaTime, Time.deltaTime);
+            LogMT.SendStreamValue("MTdt", Time.deltaTime);
         }
         
 
@@ -215,7 +214,7 @@ namespace MicTools
             float timeStepsPerSecond = 1 / ((float) windowSize / (float) sampleRate);
             sampleOffsetHigh = (int)(windowSize * (timeStepsPerSecond / lowFrequencyBound));
             sampleOffsetLow = (int)(windowSize * (timeStepsPerSecond / highFrequencyBound));
-            //Debug.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
+            //LogMT.Log("High: " + sampleOffsetHigh + " Low: " + sampleOffsetLow);
         }
 
         /// <summary>
