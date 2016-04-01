@@ -728,9 +728,8 @@ namespace TelemetryTools
         public void SendFrame()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("{\"id\":");
+            sb.Append("\n{\"id\":");
             sb.Append(frameID);
-            sb.Append("");
             BufferData(StringToBytes(sb.ToString()), newFrame: true);
         }
 

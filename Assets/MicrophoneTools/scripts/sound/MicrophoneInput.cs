@@ -134,11 +134,10 @@ namespace MicTools
                 LogMT.Log("Syllables: " + TestHarness());
                 test = false;
             }
-
             elapsedTime += Time.deltaTime;
+            LogMT.SendStreamValue("MTet", elapsedTime);
             if (elapsedTime > timeStep)
             {
-                LogMT.SendStreamValue("MTet", elapsedTime);
                 float[] window = NewWindow();
 
                 if (window.Length > 0)
@@ -163,6 +162,7 @@ namespace MicTools
             }
 
             LogMT.SendStreamValue("MTdt", Time.deltaTime);
+
         }
         
 
@@ -186,7 +186,7 @@ namespace MicTools
 
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
-                FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow);
+                FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
                 normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
                 // but kills detection on phone
                 // and performance!? - unless window size is limited to keep low the iterations
@@ -204,12 +204,12 @@ namespace MicTools
         }
 
         //Not sure I'm doing the right thing here...
-        private static void FrequencyBandToSampleOffsets(int windowSize,
-                                                  int sampleRate, 
-                                                  float lowFrequencyBound,
-                                                  float highFrequencyBound,
-                                                  out int sampleOffsetHigh,
-                                                  out int sampleOffsetLow)
+        private static void FrequencyBandToSampleOffsets( int windowSize,
+                                                          int sampleRate, 
+                                                          float lowFrequencyBound,
+                                                          float highFrequencyBound,
+                                                          out int sampleOffsetHigh,
+                                                          out int sampleOffsetLow)
         {
             float timeStepsPerSecond = 1 / ((float) windowSize / (float) sampleRate);
             sampleOffsetHigh = (int)(windowSize * (timeStepsPerSecond / lowFrequencyBound));
@@ -221,15 +221,22 @@ namespace MicTools
         ///     with an offset within a given band.
         /// </summary>
         private static float DoNormalisedPeakAutocorrelation(float[] window,
-                                                     float mean,
-                                                     int sampleOffsetHigh,
-                                                     int sampleOffsetLow)
+                                                             float mean,
+                                                             int sampleOffsetHigh,
+                                                             int sampleOffsetLow)
         {
             float highest = 0;
 
-            int windowLength = Math.Min(window.Length, 64); // If we keep the window size really small, it works on the phone. Seems to still do the jon. What effect is this having?
+            int windowLength = window.Length;
+           // int windowLength = Math.Min(window.Length, 64); // If we keep the window size really small, it works on the phone. Seems to still do the jon. What effect is this having?
 
-            float[] gammaA = new float[windowLength];
+            float[] gammaA = new float[sampleOffsetHigh-sampleOffsetLow+1];
+
+            float sumZero = 0;
+            for (int t = 0; t < windowLength - 0; t++)
+                sumZero += window[t + 0] * window[t];
+
+            float gammaZero = sumZero / windowLength;
 
             for (int h = sampleOffsetHigh; h >= sampleOffsetLow; h--)
             {
@@ -241,15 +248,12 @@ namespace MicTools
                 if (gamma > highest)
                     highest = gamma;
 
-                gammaA[h] = gamma;
+                float norm = highest / (gammaZero / windowLength);
+                gammaA[h - sampleOffsetLow] = norm;
             }
 
             // Here we normalise the peak value so it is between 0 and 1
-            float sumZero = 0;
-            for (int t = 0; t < windowLength - 0; t++)
-                sumZero += window[t + 0] * window[t];
 
-            float gammaZero = sumZero / windowLength;
             float normalised = highest / (gammaZero / windowLength);
 
             LogMT.SendStreamValue("MTsoL", sampleOffsetLow);

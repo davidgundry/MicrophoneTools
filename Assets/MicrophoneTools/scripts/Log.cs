@@ -3,6 +3,20 @@ using System.Collections;
 
 namespace MicTools
 {
+    public enum SoundEvent
+    {
+        PermissionRequired,
+        PermissionGranted,
+        MicrophoneReady,
+        SyllableStart,
+        SyllableEnd,
+        InputStart,
+        InputEnd,
+        AudioStart,
+        AudioEnd,
+        SyllablePeak
+    }
+
     public class LogMT
     {
         public static void Log(string text)
@@ -43,6 +57,39 @@ namespace MicTools
         {
             TelemetryTools.Telemetry.Instance.SendStreamValueBlock(tag, data);
         }
-        
+
+        public static void LogSoundEvent(SoundEvent e)
+        {
+            TelemetryTools.Telemetry.Instance.SendEvent("SoundEvent:" + SoundEventToString(e));
+        }
+
+        private static string SoundEventToString(SoundEvent e)
+        {
+            switch (e)
+            {
+                case SoundEvent.PermissionRequired:
+                    return "Permission Required";
+                case SoundEvent.PermissionGranted:
+                    return "Permission Granted";
+                case SoundEvent.MicrophoneReady:
+                    return "Microphone Ready";
+                case SoundEvent.SyllableStart:
+                    return "Syllable Start";
+                case SoundEvent.SyllableEnd:
+                    return "Syllable End";
+                case SoundEvent.InputStart:
+                    return "Input Start";
+                case SoundEvent.InputEnd:
+                    return "Input End";
+                case SoundEvent.AudioStart:
+                    return "Audio Start";
+                case SoundEvent.AudioEnd:
+                    return "Audio End";
+                case SoundEvent.SyllablePeak:
+                    return "Syllable Peak";
+            }
+            return "Unrecognised Event";
+        }
+
     }
 }

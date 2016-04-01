@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace TelemetryTools
 {
-    [CustomEditor(typeof(MicTools.Telemetry))]
+    [CustomEditor(typeof(TelemetryMonitor))]
     public class TMonitorEditor : Editor
     {
         private int keyToChangeTo;
@@ -14,7 +14,7 @@ namespace TelemetryTools
         {
             DrawDefaultInspector();
 
-            MicTools.Telemetry telemetryMonitor = (MicTools.Telemetry)target;
+            TelemetryMonitor telemetryMonitor = (TelemetryMonitor) target;
 
             //EditorGUILayout.LabelField("Log Input", Mathf.Round(TelemetryTools.Telemetry.Instance.LoggingRate / 1024) + " KB/s");
             //EditorGUILayout.LabelField("HTTP", Mathf.Round(TelemetryTools.Telemetry.Instance.HTTPPostRate / 1024) + " KB/s");
