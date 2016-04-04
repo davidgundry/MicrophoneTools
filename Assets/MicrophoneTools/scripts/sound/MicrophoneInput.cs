@@ -59,7 +59,7 @@ namespace MicTools
         void Start()
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
-            yin = new Yin(48000, 2048);
+            yin = new Yin(AudioSettings.outputSampleRate, 2048);
         }
 
         private int TestHarness()

@@ -11,7 +11,7 @@
 	    bufferSize = yinBufferSize;
 	    sampleRate = yinSampleRate;
 	    halfBufferSize = bufferSize / 2;
-	    threshold = 0.15;
+	    threshold = 0.85; //was 0.15
 	    probability = 0.0f;
 	    //initialize array and set it to zero
 	    yinBuffer = new float[halfBufferSize];
@@ -34,21 +34,27 @@
     public float getPitch(float[] buffer){
 	    int tauEstimate = -1;
 	    float pitchInHertz = -1;
-	
+
+        MicTools.LogMT.SendStreamValueBlock("YINOrig", buffer);
 	    //step 2
 	    difference(buffer);
-	
+        MicTools.LogMT.SendStreamValueBlock("YINDiff", yinBuffer);
+
 	    // step 3
 	    cumulativeMeanNormalizedDifference();
-	
+        MicTools.LogMT.SendStreamValueBlock("YINcmnd", yinBuffer);
+
 	    //step 4
 	    tauEstimate = absoluteThreshold();
+        MicTools.LogMT.SendStreamValue("YINtauest", tauEstimate);
 	
 	    //step 5
 	    if(tauEstimate != -1){
 		
 		    pitchInHertz = sampleRate / parabolicInterpolation(tauEstimate);
 	    }
+
+        MicTools.LogMT.SendStreamValue("YINpitchinhz", pitchInHertz);
 	
 	    return pitchInHertz;
     }

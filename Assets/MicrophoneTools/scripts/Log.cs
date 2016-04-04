@@ -22,7 +22,7 @@ namespace MicTools
         public static void Log(string text)
         {
             //if (Debug.isDebugBuild)
-            //    Debug.Log(text);
+            //   Debug.Log(text);
             TelemetryTools.Telemetry.Instance.SendEvent("Log: " + text);
         }
         public static void LogWarning(string text)
@@ -40,7 +40,7 @@ namespace MicTools
         public static void LogError(string text, Object o)
         {
             //if (Debug.isDebugBuild)
-            //     Debug.LogError(text,o);
+            //    Debug.LogError(text,o);
             TelemetryTools.Telemetry.Instance.SendEvent("LogError: " + text);
         }
         public static void SendStreamValue(string tag, System.ValueType value)

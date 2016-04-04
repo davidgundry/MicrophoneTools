@@ -28,7 +28,7 @@ namespace MicTools
         private const int defaultSampleRate = 44100;
         public int sampleRate = defaultSampleRate;
         public int SampleRate { get { return sampleRate; } }
-        private int channels = 0;
+        public int channels = 0;
         public int Channels { get { return channels; } }
 
         private MicrophoneUI microphoneUI;
@@ -170,8 +170,10 @@ namespace MicTools
             else
             {
                 audioSource.clip = Microphone.Start(microphoneDeviceName, true, 1, sampleRate);
-                channels = 2; // Fetching the number of channels from the audio clip gives incorrect results (for some reason)
+                channels = 1; // Fetching the number of channels from the audio clip gives incorrect results (for some reason)
             }
+
+            LogMT.Log("Audio Channels: " + channels);
 
             listening = true;
             gameObject.SendMessage("OnSoundEvent", SoundEvent.AudioStart, SendMessageOptions.DontRequireReceiver);

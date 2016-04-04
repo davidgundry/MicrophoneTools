@@ -38,17 +38,20 @@ namespace TelemetryTools
         public static void Log(string text)
         {
             //if (Debug.isDebugBuild)
-            //    Debug.Log(text);
+               Debug.Log(text);
+            //TelemetryTools.Telemetry.Instance.SendEvent("Log: " + text);
         }
         public static void LogWarning(string text)
         {
             //if (Debug.isDebugBuild)
-           //     Debug.LogWarning(text);
+                Debug.LogWarning(text);
+            //TelemetryTools.Telemetry.Instance.SendEvent("LogWarning: " + text);
         }
         public static void LogError(string text)
         {
             //if (Debug.isDebugBuild)
-           //     Debug.LogError(text);
+                Debug.LogError(text);
+            //TelemetryTools.Telemetry.Instance.SendEvent("LogError: " + text);
         }
     }
 
@@ -265,7 +268,7 @@ namespace TelemetryTools
 
         private static void SelfStart()
         {
-			instance = new Telemetry(uploadURL: "127.0.0.1", keyServer: "127.0.0.1", userDataURL: "127.0.0.1");//"http://192.168.43.101/ttsrv/import.php", keyServer: "http://192.168.43.101/ttsrv/key.php");
+            instance = new Telemetry(uploadURL: "192.168.43.101/ttsrv/import.php", keyServer: "192.168.43.101/ttsrv/key.php", userDataURL: "127.0.0.1");//"http://192.168.43.101/ttsrv/import.php", keyServer: "http://192.168.43.101/ttsrv/key.php");
         }
 
         private static KeyValuePair<UserDataKey, string>[] GetUserData()
