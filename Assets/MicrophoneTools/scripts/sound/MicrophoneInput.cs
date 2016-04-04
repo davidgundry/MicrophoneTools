@@ -24,12 +24,14 @@ namespace MicTools
         public const float deactivationMultiple = 1.5848931924611136f; // 1f; //0dB
         public const float presenceMultiple = 1f;
 
+        public const int maxWindowLengthForAutocorrelation = 64;
+
         private float peak = 0f;
         private float dip = 0f;
         private bool dipped = true;
 
         private int bufferReadPos = 0;
-        private float timeStep = 0.02f;
+        private const float timeStep = 0.05f;
         private double elapsedTime = 0;
 
         private int inputDetectionTimeout = 0;
@@ -60,6 +62,10 @@ namespace MicTools
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
             yin = new Yin(AudioSettings.outputSampleRate, 2048);
+
+            LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
+            LogMT.Log("Time Step: " + timeStep);
+            
         }
 
         private int TestHarness()
@@ -235,8 +241,8 @@ namespace MicTools
         {
             float highest = 0;
 
-            int windowLength = window.Length;
-           // int windowLength = Math.Min(window.Length, 64); // If we keep the window size really small, it works on the phone. Seems to still do the jon. What effect is this having?
+            //int windowLength = window.Length;
+            int windowLength = Math.Min(window.Length, maxWindowLengthForAutocorrelation); // If we keep the window size really small, it works on the phone. Seems to still do the job. What effect is this having?
 
             float[] gammaA = new float[sampleOffsetHigh-sampleOffsetLow+1];
 

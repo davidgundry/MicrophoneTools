@@ -5,7 +5,7 @@ using UnityEditor;
 
 namespace TelemetryTools
 {
-    [CustomEditor(typeof(TelemetryMonitor))]
+    [CustomEditor(typeof(TelemetryTools.TelemetryMonitor))]
     public class TMonitorEditor : Editor
     {
         private int keyToChangeTo;
@@ -14,13 +14,26 @@ namespace TelemetryTools
         {
             DrawDefaultInspector();
 
-            TelemetryMonitor telemetryMonitor = (TelemetryMonitor) target;
+            TelemetryTools.TelemetryMonitor telemetryMonitor = (TelemetryTools.TelemetryMonitor)target;
+
+            EditorGUILayout.LabelField("UploadURL", TelemetryTools.Telemetry.Instance.UploadURL);
+            EditorGUILayout.LabelField("Key Server", TelemetryTools.Telemetry.Instance.KeyServer);
+            EditorGUILayout.LabelField("User Data URL", TelemetryTools.Telemetry.Instance.UserDataURL);
+
+            EditorGUILayout.Space();
+
+            EditorGUILayout.LabelField("Total HTTP Requests", TelemetryTools.Telemetry.Instance.TotalHTTPRequestsSent.ToString());
+            EditorGUILayout.LabelField("Total HTTP Success", TelemetryTools.Telemetry.Instance.TotalHTTPSuccess.ToString());
+            EditorGUILayout.LabelField("Total HTTP Errors", TelemetryTools.Telemetry.Instance.TotalHTTPErrors.ToString());
+
+            EditorGUILayout.Space();
 
             //EditorGUILayout.LabelField("Log Input", Mathf.Round(TelemetryTools.Telemetry.Instance.LoggingRate / 1024) + " KB/s");
             //EditorGUILayout.LabelField("HTTP", Mathf.Round(TelemetryTools.Telemetry.Instance.HTTPPostRate / 1024) + " KB/s");
             //EditorGUILayout.LabelField("File", Mathf.Round(TelemetryTools.Telemetry.Instance.LocalFileSaveRate / 1024) + " KB/s");
             EditorGUILayout.LabelField("Total", Mathf.Round(TelemetryTools.Telemetry.Instance.DataLogged / 1024) + " KB");
             EditorGUILayout.LabelField("Cached Files", TelemetryTools.Telemetry.Instance.CachedFiles.ToString());
+            EditorGUILayout.LabelField("User Data Files", TelemetryTools.Telemetry.Instance.UserDataFiles.ToString());
             EditorGUILayout.LabelField("Lost Data", Mathf.Round(TelemetryTools.Telemetry.Instance.LostData / 1024) + " KB");
 
             EditorGUILayout.Space();
@@ -32,24 +45,17 @@ namespace TelemetryTools
             /*EditorGUILayout.IntField("Key", keyToChangeTo);
             if (GUILayout.Button("Change Key"))
             {
-                myScript.ChangeToKey((uint) keyToChangeTo);
+                myScript.ChangeKey((uint) keyToChangeTo);
             }*/
             if (GUILayout.Button("New Key"))
             {
-                telemetryMonitor.ChangeToNewKey();
+                telemetryMonitor.ChangeKey();
                 telemetryMonitor.UpdateUserData("test", "test");
             }
 
-            EditorGUILayout.Space();
-
-            if (GUILayout.Button("Upload User Data"))
-            {
-                telemetryMonitor.UploadUserData();
-            }
-
             Repaint();
+
         }
     }
 }
-
 #endif

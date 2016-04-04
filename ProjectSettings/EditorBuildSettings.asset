@@ -5,6 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 1
+    path: Assets/launcher.unity
+  - enabled: 1
+    path: Assets/TelemetryTools/data-management.unity
   - enabled: 0
     path: Assets/MicrophoneTools/demo/visualiser/visualiser.unity
   - enabled: 1

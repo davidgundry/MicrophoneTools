@@ -6,29 +6,42 @@ namespace TelemetryTools
     {
         public bool showLogging;
 
-        public void ChangeToNewKey()
+        void Awake()
         {
-            TelemetryTools.Telemetry.Instance.ChangeToNewKey();
+            DontDestroyOnLoad(this);
+
+            if (FindObjectsOfType(GetType()).Length > 1)
+            {
+                Destroy(gameObject);
+            }
         }
 
-        public void ChangeToKey(uint key)
+        void Start()
         {
-            TelemetryTools.Telemetry.Instance.ChangeToKey(key);
+            string baseurl = PlayerPrefs.GetString("URL");
+            TelemetryTools.Telemetry.Instance.UploadURL = baseurl + "/import.php";
+            TelemetryTools.Telemetry.Instance.KeyServer = baseurl + "/key.php";
+            TelemetryTools.Telemetry.Instance.UserDataURL = baseurl + "/userdata.php";
+        }
+
+        public void ChangeKey()
+        {
+            TelemetryTools.Telemetry.Instance.ChangeKey();
+        }
+
+        public void ChangeKey(uint key)
+        {
+            TelemetryTools.Telemetry.Instance.ChangeKey(key);
+        }
+
+        public void WriteEverything()
+        {
+            TelemetryTools.Telemetry.Instance.WriteEverything();
         }
 
         public void UpdateUserData(string key, string value)
         {
             TelemetryTools.Telemetry.Instance.UpdateUserData(key, value);
-        }
-
-        public void UploadUserData()
-        {
-            TelemetryTools.Telemetry.Instance.UploadUserData();
-        }
-
-        void Awake()
-        {
-            DontDestroyOnLoad(transform.gameObject);
         }
 
         void Update()
@@ -41,7 +54,7 @@ namespace TelemetryTools
 
         void OnDestroy()
         {
-           TelemetryTools.Telemetry.Stop();
+           TelemetryTools.Telemetry.Instance.WriteEverything();
         }
 
         void OnApplicationPause(bool pauseStatus)
