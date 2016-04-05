@@ -154,6 +154,7 @@ namespace MicTools
                 elapsedTime = 0;
                 float[] window = NewWindow();
 
+                //TODO: This should work reliably even if we are regularly getting more samples in than expected
                 if (window.Length == yinBufferSize)
                     pitch = yin.getPitch(window);
 
