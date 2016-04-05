@@ -66,11 +66,11 @@ namespace TelemetryTools
             sb.Append(TelemetryTools.Telemetry.Instance.UserDataURL);
 
             sb.Append("\nHTTP Requests Sent ");
-            sb.Append(TelemetryTools.Telemetry.Instance.TotalHTTPRequestsSent);
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalHTTPRequestsSent);
             sb.Append("\nHTTP Success ");
-            sb.Append(TelemetryTools.Telemetry.Instance.TotalHTTPSuccess);
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalHTTPSuccess);
             sb.Append("\nHTTP Errors ");
-            sb.Append(TelemetryTools.Telemetry.Instance.TotalHTTPErrors);
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalHTTPErrors);
             return sb.ToString();
         }
 

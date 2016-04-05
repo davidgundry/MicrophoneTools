@@ -39,13 +39,6 @@ namespace TelemetryTools
         private WWW keywww;
         private bool keywwwBusy;
 
-        private uint totalKeyServerRequestsSent;
-        public uint TotalKeyServerRequestsSent { get { return totalKeyServerRequestsSent; } }
-        private uint totalKeyServerSuccess;
-        public uint TotalKeyServerSuccess { get { return totalKeyServerSuccess; } }
-        private uint totalKeyServerErrors;
-        public uint TotalKeyServerErrors { get { return totalKeyServerErrors; } }
-
         /// <summary>
         /// Returns true if the we have a currentKeyID set.
         /// </summary>
@@ -112,7 +105,7 @@ namespace TelemetryTools
                     {
                         if (success == true)
                         {
-                            totalKeyServerSuccess++;
+                            ConnectionLogger.Instance.KeyServerSuccess();
                             Array.Resize(ref keys, NumberOfKeys + 1);
                             keys[NumberOfKeys - 1] = newKey;
                             PlayerPrefs.SetString("key" + (NumberOfKeys - 1), newKey);
@@ -120,7 +113,7 @@ namespace TelemetryTools
                             PlayerPrefs.Save();
                         }
                         else
-                            totalKeyServerErrors++;
+                            ConnectionLogger.Instance.KeyServerError();
                         keywwwBusy = false;
                     }
                 }
@@ -157,7 +150,7 @@ namespace TelemetryTools
                 if (usedKeys > NumberOfKeys)
                 {
                     keywww = RequestUniqueKey(this.keyServer, userData, ref keywwwBusy);
-                    totalKeyServerRequestsSent++;
+                    ConnectionLogger.Instance.KeyServerRequestSent();
                 }
         }
 

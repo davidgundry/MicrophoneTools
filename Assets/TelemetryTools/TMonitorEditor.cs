@@ -22,19 +22,19 @@ namespace TelemetryTools
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("Total HTTP Requests", TelemetryTools.Telemetry.Instance.TotalHTTPRequestsSent.ToString());
-            EditorGUILayout.LabelField("Total HTTP Success", TelemetryTools.Telemetry.Instance.TotalHTTPSuccess.ToString());
-            EditorGUILayout.LabelField("Total HTTP Errors", TelemetryTools.Telemetry.Instance.TotalHTTPErrors.ToString());
+            EditorGUILayout.LabelField("Total HTTP Requests", TelemetryTools.ConnectionLogger.Instance.TotalHTTPRequestsSent.ToString());
+            EditorGUILayout.LabelField("Total HTTP Success", TelemetryTools.ConnectionLogger.Instance.TotalHTTPSuccess.ToString());
+            EditorGUILayout.LabelField("Total HTTP Errors", TelemetryTools.ConnectionLogger.Instance.TotalHTTPErrors.ToString());
 
             EditorGUILayout.Space();
 
             //EditorGUILayout.LabelField("Log Input", Mathf.Round(TelemetryTools.Telemetry.Instance.LoggingRate / 1024) + " KB/s");
             //EditorGUILayout.LabelField("HTTP", Mathf.Round(TelemetryTools.Telemetry.Instance.HTTPPostRate / 1024) + " KB/s");
             //EditorGUILayout.LabelField("File", Mathf.Round(TelemetryTools.Telemetry.Instance.LocalFileSaveRate / 1024) + " KB/s");
-            EditorGUILayout.LabelField("Total", Mathf.Round(TelemetryTools.Telemetry.Instance.DataLogged / 1024) + " KB");
+            EditorGUILayout.LabelField("Total", Mathf.Round(TelemetryTools.ConnectionLogger.Instance.DataLogged / 1024) + " KB");
             EditorGUILayout.LabelField("Cached Files", TelemetryTools.Telemetry.Instance.CachedFiles.ToString());
             EditorGUILayout.LabelField("User Data Files", TelemetryTools.Telemetry.Instance.UserDataFiles.ToString());
-            EditorGUILayout.LabelField("Lost Data", Mathf.Round(TelemetryTools.Telemetry.Instance.LostData / 1024) + " KB");
+            EditorGUILayout.LabelField("Lost Data", Mathf.Round(TelemetryTools.ConnectionLogger.Instance.LostData / 1024) + " KB");
 
             EditorGUILayout.Space();
 

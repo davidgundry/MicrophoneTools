@@ -49,7 +49,7 @@ namespace TelemetryTools
             TelemetryTools.Telemetry.Update();
 
             if (showLogging)
-                Debug.Log(TelemetryTools.Telemetry.GetPrettyLoggingRate());
+                Debug.Log(TelemetryTools.ConnectionLogger.GetPrettyLoggingRate());
         }
 
         void OnDestroy()

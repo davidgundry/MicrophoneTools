@@ -105,13 +105,6 @@ namespace TelemetryTools
         private UniqueKey wwwKey;
         private KeyID wwwKeyID;
 
-        private uint totalHTTPRequestsSent;
-        public uint TotalHTTPRequestsSent { get { return totalHTTPRequestsSent; } }
-        private uint totalHTTPSuccess;
-        public uint TotalHTTPSuccess { get { return totalHTTPSuccess; } }
-        private uint totalHTTPErrors;
-        public uint TotalHTTPErrors { get { return totalHTTPErrors; } }
-
         //User Data
         private WWW userDatawww;
         private URL userDataURL;
@@ -144,27 +137,6 @@ namespace TelemetryTools
         private bool offBufferFull = false;
         private byte[] frameBuffer;
         private int frameBufferPos = 0;
-        private Bytes lostData = 0;
-        public Bytes LostData { get { return lostData; } }
-
-        // Logging and Transfer Rate
-        private Milliseconds lastLoggingUpdate;
-
-        private Megabytes dataLogged;
-        public Megabytes DataLogged { get { return dataLogged; } }
-        private Bytes dataLoggedSinceUpdate;
-        public Bytes DataLoggedSinceUpdate { get { return dataLoggedSinceUpdate; } }
-        private Bytes dataSavedToFileSinceUpdate;
-        public Bytes DataSavedToFileSinceUpdate { get { return dataSavedToFileSinceUpdate; } }
-        private Bytes dataSentByHTTPSinceUpdate;
-        public Bytes DataSentByHTTPSinceUpdate { get { return dataSentByHTTPSinceUpdate; } }
-
-        private BytesPerSecond loggingRate;
-        public BytesPerSecond LoggingRate { get { return loggingRate; } }
-        private BytesPerSecond httpPostRate;
-        public BytesPerSecond HTTPPostRate { get { return httpPostRate; } }
-        private BytesPerSecond localFileSaveRate;
-        public BytesPerSecond LocalFileSaveRate { get { return localFileSaveRate; } }
 
         private KeyManager keyManager;
         public KeyManager KeyManager { get { return keyManager; } }
@@ -241,7 +213,7 @@ namespace TelemetryTools
                     offBufferFull = !SendBuffer(RemoveTrailingNulls(OffBuffer));
 #if POSTENABLED
             keyManager.HandleKeyWWWResponse();
-            HandleUserDataWWWResponse(ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID, ref userData, userDatawwwKeyID, keyManager.CurrentKeyID, userDataFilesList, ref totalHTTPErrors, ref totalHTTPSuccess);
+            HandleUserDataWWWResponse(ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID, ref userData, userDatawwwKeyID, keyManager.CurrentKeyID, userDataFilesList);
             SaveDataOnWWWErrorIfWeCan();
 
             keyManager.Update(httpPostEnabled);
@@ -261,7 +233,7 @@ namespace TelemetryTools
                             bufferPos = 0;
             }
 #endif
-            UpdateLogging();
+            ConnectionLogger.Instance.Update();
         }
 
         public void WriteEverything()
@@ -313,20 +285,7 @@ namespace TelemetryTools
         }
 
 
-        private void UpdateLogging()
-        {
-            dataLogged += dataLoggedSinceUpdate;
 
-            BytesPerSecond bytePerSecond = 1000 / Mathf.Max(((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - lastLoggingUpdate), 1);
-            loggingRate = bytePerSecond * dataLoggedSinceUpdate;
-            httpPostRate = bytePerSecond * dataSentByHTTPSinceUpdate;
-            localFileSaveRate = bytePerSecond * dataSavedToFileSinceUpdate;
-
-            lastLoggingUpdate = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
-            dataLoggedSinceUpdate = 0;
-            dataSavedToFileSinceUpdate = 0;
-            dataSentByHTTPSinceUpdate = 0;
-        }
 
         public void UpdateUserData(UserDataKey key, string value)
         {
@@ -341,9 +300,9 @@ namespace TelemetryTools
             if (keyManager.HasKey)
             {
                 if (key == keyManager.CurrentKeyID)
-                    SendUserDataByHTTPPost(userDataURL, userData, keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID, ref totalHTTPRequestsSent);
+                    SendUserDataByHTTPPost(userDataURL, userData, keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
                 else
-                    SendUserDataByHTTPPost(userDataURL, LoadUserData(key), keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID, ref totalHTTPRequestsSent);
+                    SendUserDataByHTTPPost(userDataURL, LoadUserData(key), keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
             }
             else
                 Debug.LogWarning("Cannot upload user data of keyID " + key + " because it does not match an actual key.");
@@ -379,7 +338,7 @@ namespace TelemetryTools
                     {
                         if (keyManager.UsingKey)
                         {
-                            SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID, ref totalHTTPRequestsSent);
+                            SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
                             File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
                             cachedFilesList.RemoveAt(0);
                             WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
@@ -414,8 +373,7 @@ namespace TelemetryTools
                                                     KeyID keyID,
                                                     ref WWW userDatawww,
                                                     ref bool userDatawwwBusy,
-                                                    ref KeyID userDatawwwKeyID, 
-                                                    ref uint totalHTTPRequestsSent)
+                                                    ref KeyID userDatawwwKeyID)
         {
             if (!String.IsNullOrEmpty(uniqueKey))
             {
@@ -429,7 +387,7 @@ namespace TelemetryTools
                     userDatawww = new WWW(userDataURL, form);
                     userDatawwwBusy = true;
                     userDatawwwKeyID = keyID;
-                    totalHTTPRequestsSent++;
+                    ConnectionLogger.Instance.HTTPRequestSent();
                 }
                 else
                     Debug.LogWarning("Cannot send empty user data to server");
@@ -509,9 +467,7 @@ namespace TelemetryTools
             ref Dictionary<UserDataKey, string> userData,
             KeyID wwwKeyID,
             KeyID currentKeyID,
-            List<string> userDataFilesList,
-            ref uint totalHTTPErrors,
-            ref uint totalHTTPSuccess)
+            List<string> userDataFilesList)
         {
             if (userDatawww != null)
             {
@@ -521,7 +477,7 @@ namespace TelemetryTools
                     {
                         Debug.LogWarning("Send User Data Error: " + userDatawww.error);
                         userDatawwwBusy = false;
-                        totalHTTPErrors++;
+                        ConnectionLogger.Instance.HTTPError();
                     }
                     else if (userDatawww.isDone)
                     {
@@ -540,7 +496,7 @@ namespace TelemetryTools
 
                         userDatawwwBusy = false;
                         userDatawwwKeyID = null;
-                        totalHTTPSuccess++;
+                        ConnectionLogger.Instance.HTTPSuccess();
                     }
                 }
             }
@@ -579,8 +535,8 @@ namespace TelemetryTools
                 {
                     if (keyManager.HasKey)
                     {
-                        SendByHTTPPost(data, sessionID, sequenceID, fileExtension, keyManager.CurrentKey, keyManager.CurrentKeyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID, ref totalHTTPRequestsSent);
-                        dataSentByHTTPSinceUpdate += (uint)data.Length;
+                        SendByHTTPPost(data, sessionID, sequenceID, fileExtension, keyManager.CurrentKey, keyManager.CurrentKeyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
+                        ConnectionLogger.Instance.AddDataSentByHTTPSinceUpdate((uint)data.Length);
                         sequenceID++;
                         return true;
                     }
@@ -607,7 +563,7 @@ namespace TelemetryTools
         {
             if (keyManager.UsingKey)
             {
-                dataLoggedSinceUpdate += (uint)data.Length;
+                ConnectionLogger.Instance.AddDataLoggedSinceUpdate((uint)data.Length);
 
                 if (newFrame)
                 {
@@ -623,7 +579,7 @@ namespace TelemetryTools
                         if (offBufferFull)
                         {
                             Debug.LogWarning("Overflow local telemetry buffer, data overwritten");
-                            lostData += (uint)RemoveTrailingNulls(OffBuffer).Length;
+                            ConnectionLogger.Instance.AddLostData((uint)RemoveTrailingNulls(OffBuffer).Length);
                         }
 
                         Array.Clear(ActiveBuffer, bufferPos, outboxBuffer1.Length - bufferPos);
@@ -648,7 +604,7 @@ namespace TelemetryTools
                 else
                 {
                     Debug.LogWarning("Overflow frame buffer, data lost");
-                    lostData += (uint)data.Length;
+                    ConnectionLogger.Instance.AddLostData((uint)data.Length);
                 }
             }
             else
@@ -668,39 +624,7 @@ namespace TelemetryTools
             return partBuffer;
         }
 
-        public static string GetPrettyLoggingRate() { return Instance.GetPrettyLoggingRateP(); }
 
-        private string GetPrettyLoggingRateP()
-        {
-            System.Text.StringBuilder sb = new System.Text.StringBuilder();
-            sb.Append("Log Input: ");
-            sb.Append(Mathf.Round((loggingRate / 1024)));
-            sb.Append(" KiB/s");
-
-#if POSTENABLED
-           sb.Append("    HTTP: ");
-            sb.Append(Mathf.Round((httpPostRate / 1024)));
-            sb.Append(" KiB/s");
-#endif
-#if LOCALSAVEENABLED
-            sb.Append("    File: ");
-            sb.Append(Mathf.Round((localFileSaveRate / 1024)));
-            sb.Append(" KiB/s");
-#endif
-            sb.Append("    Total: ");
-            sb.Append((dataLogged / 1024));
-            sb.Append(" KiB");
-#if LOCALSAVEENABLED
-            sb.Append("    Cached Files: ");
-            sb.Append(CachedFiles.ToString());
-#endif
-
-            sb.Append("    Lost Data: ");
-            sb.Append((lostData / 1024));
-            sb.Append(" KiB");
-
-            return sb.ToString();
-        }
 
 
         public void SendFrame()
@@ -945,8 +869,7 @@ namespace TelemetryTools
                                             out SessionID wwwSessionID,
                                             out bool wwwBusy,
                                             out UniqueKey wwwKey,
-                                            out KeyID wwwKeyID,
-                                            ref uint totalHTTPRequestsSent)
+                                            out KeyID wwwKeyID)
         {
 
             if (!String.IsNullOrEmpty(uniqueKey))
@@ -971,7 +894,7 @@ namespace TelemetryTools
                 wwwSessionID = sessionID;
                 wwwKey = uniqueKey;
                 wwwKeyID = uniqueKeyID;
-                totalHTTPRequestsSent++;
+                ConnectionLogger.Instance.HTTPRequestSent();
             }
             else
             {
@@ -1291,7 +1214,7 @@ namespace TelemetryTools
                 if ((!File.Exists(file.FullName)) || (!IsFileOpen(file)))
                 {
                     WriteDataToFile(data, file);
-                    dataSavedToFileSinceUpdate += (uint)data.Length;
+                    ConnectionLogger.Instance.AddDataSavedToFileSinceUpdate((uint)data.Length);
 
                     cachedFilesList.Add(file.Name);
                     //TODO: Append rather than rewrite everything
@@ -1313,7 +1236,7 @@ namespace TelemetryTools
                 {
                     if (!HandleWWWErrors(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID))
                     {
-                        totalHTTPErrors++;
+                        ConnectionLogger.Instance.HTTPError();
 #if LOCALSAVEENABLED
                         if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID))
                             DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
@@ -1323,7 +1246,7 @@ namespace TelemetryTools
 #endif
                     }
                     else
-                        totalHTTPSuccess++;
+                        ConnectionLogger.Instance.HTTPSuccess();
                 }
                 else // !wwwBusy
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
