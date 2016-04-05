@@ -24,14 +24,16 @@ namespace MicTools
         public const float deactivationMultiple = 1.5848931924611136f; // 1f; //0dB
         public const float presenceMultiple = 1f;
 
-        public const int maxWindowLengthForAutocorrelation = 64;
+        private const int maxWindowLengthForAutocorrelation = 1024;
+        private const int minNewSamplesPerWindow = 1024;
+        private const int yinBufferSize = 1024;
 
         private float peak = 0f;
         private float dip = 0f;
         private bool dipped = true;
 
         private int bufferReadPos = 0;
-        private const float timeStep = 0.05f;
+        //private const float timeStep = 0.05f;
         private double elapsedTime = 0;
 
         private int inputDetectionTimeout = 0;
@@ -61,11 +63,10 @@ namespace MicTools
         void Start()
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
-            yin = new Yin(AudioSettings.outputSampleRate, 2048);
+            yin = new Yin(AudioSettings.outputSampleRate, yinBufferSize);
 
-            LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
-            LogMT.Log("Time Step: " + timeStep);
-            
+            LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
+            LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);            
         }
 
         private int TestHarness()
@@ -90,7 +91,7 @@ namespace MicTools
             dipped = true;
 
             AudioClip testClip = GetComponent<AudioSource>().clip;
-            int length = (int)(GetComponent<MicrophoneController>().SampleRate * timeStep);
+            int length = minNewSamplesPerWindow;// (int)(GetComponent<MicrophoneController>().SampleRate * timeStep);
             float[] samples = new float[length];
 
             if (testClip != null)
@@ -147,11 +148,13 @@ namespace MicTools
             }
             elapsedTime += Time.deltaTime;
             LogMT.SendStreamValue("MTet", elapsedTime);
-            if (elapsedTime > timeStep)
+            //if (elapsedTime > timeStep)
+            if (NewSamples >= minNewSamplesPerWindow)
             {
+                elapsedTime = 0;
                 float[] window = NewWindow();
 
-                if (window.Length == 2048)
+                if (window.Length == yinBufferSize)
                     pitch = yin.getPitch(window);
 
                 if (window.Length > 0)
@@ -277,21 +280,29 @@ namespace MicTools
             return normalised;
         }
 
+        private int NewSamples
+        {
+            get
+            {
+                int newSamples = 0;
+                if (bufferReadPos > microphoneBuffer.BufferPos)
+                    newSamples = microphoneBuffer.Buffer.Length - bufferReadPos + microphoneBuffer.BufferPos;
+                else
+                    newSamples = microphoneBuffer.BufferPos - bufferReadPos;
+                return newSamples;
+            }
+        }
+
         private float[] NewWindow()
         {
             float[] buffer = microphoneBuffer.Buffer;
 
-            int newSamples = 0;
-            if (bufferReadPos > microphoneBuffer.BufferPos)
-                newSamples = buffer.Length - bufferReadPos + microphoneBuffer.BufferPos;
-            else
-                newSamples = microphoneBuffer.BufferPos - bufferReadPos;
+            int newSamples = NewSamples;
 
             if (newSamples > 0)
             {
                 samplesSoFar += newSamples;
                 windowsSoFar++;
-                elapsedTime = 0;
 
                 float[] data = new float[newSamples];
                 int i = 0;
