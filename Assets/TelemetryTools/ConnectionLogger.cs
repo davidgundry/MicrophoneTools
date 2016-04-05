@@ -70,6 +70,9 @@ namespace TelemetryTools
         private Milliseconds uploadCacheFilesDelay;
         public Milliseconds UploadCacheFilesDelay { get { return uploadCacheFilesDelay; } set { uploadCacheFilesDelay = value; } }
 
+        private Milliseconds requestKeyDelay;
+        public Milliseconds RequestKeyDelay { get { return requestKeyDelay; } set { requestKeyDelay = value; } }
+
         public void Update()
         {
             Milliseconds elapsedTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - lastLoggingUpdate;
@@ -79,6 +82,8 @@ namespace TelemetryTools
                 uploadUserDataDelay -= elapsedTime;
             if (uploadCacheFilesDelay > 0)
                 uploadCacheFilesDelay -= elapsedTime;
+            if (requestKeyDelay > 0)
+                requestKeyDelay -= elapsedTime;
 
             BytesPerSecond bytePerSecond = 1000 / Math.Max(elapsedTime, 1);
             loggingRate = bytePerSecond * dataLoggedSinceUpdate;

@@ -88,7 +88,7 @@ namespace TelemetryTools
         private const FilePath cacheListFilename = "cache.txt";
         private List<FilePath> cachedFilesList;
 #endif
-
+        private const Milliseconds uploadCachedFilesDelayOnFailure = 10000;
 
 #if POSTENABLED 
         // Remote
@@ -120,6 +120,8 @@ namespace TelemetryTools
         private List<FilePath> userDataFilesList;
         public List<FilePath> UserDataFilesList { get { return userDataFilesList; } }
         public int UserDataFiles { get { if (userDataFilesList != null) return userDataFilesList.Count; return 0; } }
+
+        private const Milliseconds uploadUserDataDelayOnFailure = 10000;
 
         private readonly Bytes minSendingThreshold;
         private const Bytes defaultMinSendingThreshold = 1024;
@@ -221,10 +223,10 @@ namespace TelemetryTools
 #if LOCALSAVEENABLED
                 if ((!userDatawwwBusy) && (ConnectionLogger.Instance.UploadUserDataDelay <= 0))
                     if (!UploadBacklogOfUserData())
-                        ConnectionLogger.Instance.UploadUserDataDelay = 1000;
+                        ConnectionLogger.Instance.UploadUserDataDelay = uploadUserDataDelayOnFailure;
                 if ((!offBufferFull) && (!wwwBusy) && (ConnectionLogger.Instance.UploadCacheFilesDelay <= 0))
                     if (!UploadBacklogOfCacheFiles())
-                        ConnectionLogger.Instance.UploadCacheFilesDelay = 1000;
+                        ConnectionLogger.Instance.UploadCacheFilesDelay = uploadCachedFilesDelayOnFailure;
 #endif
 
                 if ((!offBufferFull) && (!wwwBusy))
@@ -340,11 +342,12 @@ namespace TelemetryTools
                 int i = 0;
                 while ((!wwwBusy) && (i < cachedFilesList.Count))
                 {
-                    if (LoadFromCacheFile(cacheDirectory, cachedFilesList[i], out data, out snID, out sqID, out keyID))
+                    ParseCacheFileName(cacheDirectory, cachedFilesList[i], out snID, out sqID, out keyID);
+                    if (keyManager.KeyIsValid(keyID))
                     {
-                        if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
+                        if (LoadFromCacheFile(cacheDirectory, cachedFilesList[i], out data))
                         {
-                            if (keyManager.KeyIsValid(keyID))
+                            if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
                             {
                                 SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
                                 File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
@@ -352,28 +355,28 @@ namespace TelemetryTools
                                 WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
                             }
                             else
-                                Debug.LogWarning("Cannot upload cache file because KeyID " + keyID.ToString() + " has not been retrieved from the key server.");
+                            {
+                                StringBuilder sb = new StringBuilder();
+                                sb.Append("Values loaded from cache file seem to be invalid:");
+                                if (data.Length <= 0)
+                                    sb.Append("\n* Data loaded is empty");
+                                if (snID == null)
+                                    sb.Append("\n* Session ID is null");
+                                if (sqID == null)
+                                    sb.Append("\n* Sequence ID is null");
+                                if (keyID == null)
+                                    sb.Append("\n* Key ID is null");
+
+                                Debug.LogWarning(sb.ToString());
+                            }
                         }
                         else
                         {
-                            StringBuilder sb = new StringBuilder();
-                            sb.Append("Values loaded from cache file seem to be invalid:");
-                            if (data.Length <= 0)
-                                sb.Append("\n* Data loaded is empty");
-                            if (snID == null)
-                                sb.Append("\n* Session ID is null");
-                            if (sqID == null)
-                                sb.Append("\n* Sequence ID is null");
-                            if (keyID == null)
-                                sb.Append("\n* Key ID is null");
-
-                            Debug.LogWarning(sb.ToString());
+                            Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
                         }
                     }
                     else
-                    {
-                        Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
-                    }
+                        Debug.LogWarning("Cannot upload cache file because KeyID " + keyID.ToString() + " has not been retrieved from the key server.");
 
                     i++;
                 }
@@ -973,9 +976,8 @@ namespace TelemetryTools
             }
         }
 
-        private static bool LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data, out SessionID sessionID, out SequenceID sequenceID, out KeyID keyID)
+        private static void ParseCacheFileName(FilePath directory, FilePath filename, out SessionID sessionID, out SequenceID sequenceID, out KeyID keyID)
         {
-            data = new byte[0];
             sessionID = null;
             sequenceID = null;
             keyID = null;
@@ -995,20 +997,25 @@ namespace TelemetryTools
                     sessionID = snID;
                     sequenceID = sqID;
                     keyID = kID;
-
-                    FilePath cacheFile = directory + "/" + filename;
-                    if (File.Exists(cacheFile))
-                    {
-                        data = File.ReadAllBytes(cacheFile);
-                        return true;
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
-                    }
                 }
                 else
                     Debug.LogWarning("Failed to parse filename. List of cache files may be corrputed.");
+            }
+        }
+
+        private static bool LoadFromCacheFile(FilePath directory, FilePath filename, out byte[] data)
+        {
+            data = new byte[0];
+
+            FilePath cacheFile = directory + "/" + filename;
+            if (File.Exists(cacheFile))
+            {
+                data = File.ReadAllBytes(cacheFile);
+                return true;
+            }
+            else
+            {
+                Debug.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
             }
             return false;
         }

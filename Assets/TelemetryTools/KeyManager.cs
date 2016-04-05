@@ -39,6 +39,8 @@ namespace TelemetryTools
         private WWW keywww;
         private bool keywwwBusy;
 
+        private const Milliseconds requestKeyDelayOnFailure = 10000;
+
         /// <summary>
         /// Returns true if the we have a currentKeyID set.
         /// </summary>
@@ -84,7 +86,8 @@ namespace TelemetryTools
         public void Update(bool httpPostEnabled)
         {
             if (httpPostEnabled)
-                RequestKeyIfNone(Telemetry.UserProperties);
+                if (ConnectionLogger.Instance.RequestKeyDelay <= 0)
+                    RequestKeyIfNone(Telemetry.UserProperties);
         }
 
         public UniqueKey GetKeyByID(KeyID id)
@@ -116,9 +119,14 @@ namespace TelemetryTools
                             PlayerPrefs.SetString("key" + (NumberOfKeys - 1), newKey);
                             PlayerPrefs.SetString("numkeys", NumberOfKeys.ToString());
                             PlayerPrefs.Save();
+                            ConnectionLogger.Instance.UploadUserDataDelay = 0;
+                            ConnectionLogger.Instance.UploadCacheFilesDelay = 0;
                         }
                         else
+                        {
                             ConnectionLogger.Instance.KeyServerError();
+                            ConnectionLogger.Instance.RequestKeyDelay = requestKeyDelayOnFailure;
+                        }
                         keywwwBusy = false;
                     }
                 }
