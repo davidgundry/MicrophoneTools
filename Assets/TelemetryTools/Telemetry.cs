@@ -593,7 +593,7 @@ namespace TelemetryTools
                 {
                     if (frameID != 0)
                     {
-                        byte[] endFrame = StringToBytes("},");
+                        byte[] endFrame = StringToBytes("}\n"); // newline required for mongo import?
                         System.Buffer.BlockCopy(endFrame, 0, frameBuffer, frameBufferPos, endFrame.Length);
                         frameBufferPos += endFrame.Length;
                     }
