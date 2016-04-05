@@ -197,8 +197,6 @@ namespace TelemetryTools
 #if POSTENABLED
             this.uploadURL = uploadURL;
             this.userDataURL = userDataURL;
-
-            userData = LoadUserData(keyManager.CurrentKeyID);
 #endif
 
             Debug.Log("Persistant Data Path: " + Application.persistentDataPath);
@@ -305,7 +303,7 @@ namespace TelemetryTools
                     SendUserDataByHTTPPost(userDataURL, LoadUserData(key), keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
             }
             else
-                Debug.LogWarning("Cannot upload user data of keyID " + key + " because it does not match an actual key.");
+                Debug.LogWarning("Cannot upload user data of keyID " + key + " because we have not yet fetched that key.");
         }
 
         public void UploadBacklogOfUserData()
@@ -332,40 +330,46 @@ namespace TelemetryTools
                 SessionID snID;
                 SequenceID sqID;
                 KeyID keyID;
-                if (LoadFromCacheFile(cacheDirectory, cachedFilesList[0], out data, out snID, out sqID, out keyID))
+                int i = 0;
+                while ((!wwwBusy) && (i < cachedFilesList.Count))
                 {
-                    if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
+                    if (LoadFromCacheFile(cacheDirectory, cachedFilesList[i], out data, out snID, out sqID, out keyID))
                     {
-                        if (keyManager.KeyIsValid(keyID))
+                        if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
                         {
-                            SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
-                            File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
-                            cachedFilesList.RemoveAt(0);
-                            WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
+                            if (keyManager.KeyIsValid(keyID))
+                            {
+                                SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
+                                File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
+                                cachedFilesList.RemoveAt(i);
+                                WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
+                            }
+                            else
+                                Debug.LogWarning("Cannot upload cache file because KeyID " + keyID.ToString() + " has not been retrieved from the key server.");
                         }
                         else
-                            Debug.LogWarning("Cannot upload cache file because KeyID " + keyID.ToString() + " has not been retrieved from the key server.");
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            sb.Append("Values loaded from cache file seem to be invalid:");
+                            if (data.Length <= 0)
+                                sb.Append("\n* Data loaded is empty");
+                            if (snID == null)
+                                sb.Append("\n* Session ID is null");
+                            if (sqID == null)
+                                sb.Append("\n* Sequence ID is null");
+                            if (keyID == null)
+                                sb.Append("\n* Key ID is null");
+
+                            Debug.LogWarning(sb.ToString());
+                        }
                     }
                     else
                     {
-                        StringBuilder sb = new StringBuilder();
-                        sb.Append("Values loaded from cache file seem to be invalid:");
-                        if (data.Length <= 0)
-                            sb.Append("\n* Data loaded is empty");
-                        if (snID == null)
-                            sb.Append("\n* Session ID is null");
-                        if (sqID == null)
-                            sb.Append("\n* Sequence ID is null");
-                        if (keyID == null)
-                            sb.Append("\n* Key ID is null");
-
-                        Debug.LogWarning(sb.ToString());
+                        Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
+                        cachedFilesList.RemoveAt(i);
                     }
-                }
-                else
-                {
-                    Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
-                    cachedFilesList.RemoveAt(0);
+
+                    i++;
                 }
             }
         }

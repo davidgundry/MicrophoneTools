@@ -128,10 +128,10 @@ namespace TelemetryTools
         public void ChangeKey()
         {
             usedKeys++;
-            ChangeKey(usedKeys - 1);
+            ChangeKey(usedKeys - 1, newKey: true);
         }
 
-        public void ChangeKey(uint key)
+        public void ChangeKey(uint key, bool newKey = false)
         {
             if (key < usedKeys)
             {
@@ -139,7 +139,10 @@ namespace TelemetryTools
                 telemetry.SendAllBuffered();
 
                 currentKeyID = key;
-                telemetry.UserData = Telemetry.LoadUserData(currentKeyID);
+                if (!newKey)
+                    telemetry.UserData = Telemetry.LoadUserData(currentKeyID);
+                else
+                    telemetry.UserData = new Dictionary<UserDataKey, string>();
 
                 PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
                 PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
