@@ -325,6 +325,12 @@ namespace TelemetryTools
                 uint result = 0;
                 if (UInt32.TryParse(strs[0], out result))
                     UploadUserData(result);
+                else
+                {
+                    userDataFilesList.RemoveAt(i);
+                    WriteStringsToFile(userDataFilesList.ToArray(), GetFileInfo(userDataDirectory, userDataListFilename));
+                }
+
             }
             return userDatawwwBusy; // If www is busy, we successfully found something to upload
         }
