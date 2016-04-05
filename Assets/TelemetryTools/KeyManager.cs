@@ -88,25 +88,15 @@ namespace TelemetryTools
 #endif
         }
 
-        public void Update()
+        public void Update(bool httpPostEnabled)
         {
-            RequestKeyIfNone(Telemetry.UserProperties);
+            if (httpPostEnabled)
+                RequestKeyIfNone(Telemetry.UserProperties);
         }
-
 
         public UniqueKey GetKeyByID(KeyID id)
         {
             return keys[(uint) id];
-        }
-
-        public void RequestKeyIfNone(KeyValuePair<UserDataKey, string>[] userData)
-        {
-            if (!keywwwBusy)
-                if (usedKeys > NumberOfKeys)
-                {
-                    keywww = RequestUniqueKey(this.keyServer, userData, ref keywwwBusy);
-                    totalKeyServerRequestsSent++;
-                }
         }
 
         public void HandleKeyWWWResponse()
@@ -135,6 +125,40 @@ namespace TelemetryTools
                     }
                 }
             }
+        }
+
+        public void ChangeKey()
+        {
+            usedKeys++;
+            ChangeKey(usedKeys - 1);
+        }
+
+        public void ChangeKey(uint key)
+        {
+            if (key < usedKeys)
+            {
+                telemetry.SaveUserData();
+                telemetry.SendAllBuffered();
+
+                currentKeyID = key;
+                telemetry.UserData = Telemetry.LoadUserData(currentKeyID);
+
+                PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
+                PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
+                PlayerPrefs.Save();
+
+                telemetry.Restart();
+            }
+        }
+
+        private void RequestKeyIfNone(KeyValuePair<UserDataKey, string>[] userData)
+        {
+            if (!keywwwBusy)
+                if (usedKeys > NumberOfKeys)
+                {
+                    keywww = RequestUniqueKey(this.keyServer, userData, ref keywwwBusy);
+                    totalKeyServerRequestsSent++;
+                }
         }
 
         private static WWW RequestUniqueKey(URL keyServer, KeyValuePair<string, string>[] userData, ref bool keyWWWBusy)
@@ -175,30 +199,6 @@ namespace TelemetryTools
                     }
                 }
             return null;
-        }
-
-        public void ChangeKey()
-        {
-            usedKeys++;
-            ChangeKey(usedKeys - 1);
-        }
-
-        public void ChangeKey(uint key)
-        {
-            if (key < usedKeys)
-            {
-                telemetry.SaveUserData();
-                telemetry.SendAllBuffered();
-
-                currentKeyID = key;
-                telemetry.UserData = Telemetry.LoadUserData(currentKeyID);
-
-                PlayerPrefs.SetString("currentkeyid", currentKeyID.ToString());
-                PlayerPrefs.SetString("usedkeys", usedKeys.ToString());
-                PlayerPrefs.Save();
-
-                telemetry.Restart();
-            }
         }
     }
 }

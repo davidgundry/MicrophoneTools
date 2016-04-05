@@ -244,9 +244,10 @@ namespace TelemetryTools
             HandleUserDataWWWResponse(ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID, ref userData, userDatawwwKeyID, keyManager.CurrentKeyID, userDataFilesList, ref totalHTTPErrors, ref totalHTTPSuccess);
             SaveDataOnWWWErrorIfWeCan();
 
+            keyManager.Update(httpPostEnabled);
+
             if (httpPostEnabled)
             {
-                keyManager.Update();
 #if LOCALSAVEENABLED
                 if (!userDatawwwBusy)
                     UploadBacklogOfUserData();
