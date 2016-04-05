@@ -363,7 +363,7 @@ namespace TelemetryTools
                     }
                 }
                 else
-                    Debug.LogWarning("Error loading from cache file for KeyID:  " + keyID == null ? "null" : keyID.ToString());
+                    Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
             }
         }
 

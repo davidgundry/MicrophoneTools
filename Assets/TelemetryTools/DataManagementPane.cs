@@ -71,6 +71,13 @@ namespace TelemetryTools
             sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalHTTPSuccess);
             sb.Append("\nHTTP Errors ");
             sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalHTTPErrors);
+
+            sb.Append("\nKey Server Requests Sent ");
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalKeyServerRequestsSent);
+            sb.Append("\nKey Server Success ");
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalKeyServerSuccess);
+            sb.Append("\nKey Server Errors ");
+            sb.Append(TelemetryTools.ConnectionLogger.Instance.TotalKeyServerErrors);
             return sb.ToString();
         }
 
