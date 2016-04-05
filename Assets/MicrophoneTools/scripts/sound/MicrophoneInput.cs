@@ -63,10 +63,19 @@ namespace MicTools
         void Start()
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
-            yin = new Yin(AudioSettings.outputSampleRate, yinBufferSize);
+        
+        }
 
-            LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
-            LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);            
+        public void OnSoundEvent(SoundEvent e)
+        {
+            switch (e)
+            {
+                case SoundEvent.AudioStart:
+                    yin = new Yin(AudioSettings.outputSampleRate, yinBufferSize);
+                    LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
+                    LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
+                    break;
+            }
         }
 
         private int TestHarness()
@@ -156,7 +165,8 @@ namespace MicTools
 
                 //TODO: This should work reliably even if we are regularly getting more samples in than expected
                 if (window.Length == yinBufferSize)
-                    pitch = yin.getPitch(window);
+                    if (yin != null)
+                        pitch = yin.getPitch(window);
 
                 if (window.Length > 0)
                 {
