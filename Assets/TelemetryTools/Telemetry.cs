@@ -317,7 +317,7 @@ namespace TelemetryTools
         public bool UploadBacklogOfUserData()
         {
             int i = 0;
-            while ((!userDatawwwBusy) && (i < userDataFilesList.Count))
+            if (!userDatawwwBusy)
             {
                 string[] separators = new string[1];
                 separators[0] = ".";
@@ -325,8 +325,6 @@ namespace TelemetryTools
                 uint result = 0;
                 if (UInt32.TryParse(strs[0], out result))
                     UploadUserData(result);
-
-                i++;
             }
             return userDatawwwBusy; // If www is busy, we successfully found something to upload
         }
