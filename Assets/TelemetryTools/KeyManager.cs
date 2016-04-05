@@ -92,6 +92,11 @@ namespace TelemetryTools
             return keys[(uint) id];
         }
 
+        public bool KeyIsValid(KeyID id)
+        {
+            return id < NumberOfKeys;
+        }
+
         public void HandleKeyWWWResponse()
         {
             bool? success = null;

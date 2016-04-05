@@ -336,7 +336,7 @@ namespace TelemetryTools
                 {
                     if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
                     {
-                        if (keyManager.UsingKey)
+                        if (keyManager.KeyIsValid(keyID))
                         {
                             SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
                             File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
@@ -363,7 +363,10 @@ namespace TelemetryTools
                     }
                 }
                 else
+                {
                     Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
+                    cachedFilesList.RemoveAt(0);
+                }
             }
         }
 
@@ -989,7 +992,9 @@ namespace TelemetryTools
                         return true;
                     }
                     else
+                    {
                         Debug.LogWarning("Attempted to load from from non-existant cache file: " + cacheFile);
+                    }
                 }
                 else
                     Debug.LogWarning("Failed to parse filename. List of cache files may be corrputed.");
