@@ -461,7 +461,7 @@ namespace TelemetryTools
                 }
             }
             else
-                Debug.LogWarning("UserKeyID not valid. You probably have not created a used key.");
+                Debug.LogWarning("UserKeyID not valid. You probably have not set a user key.");
         }
             
 
