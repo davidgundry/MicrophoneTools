@@ -564,14 +564,16 @@ namespace TelemetryTools
 #endif
 #if LOCALSAVEENABLED
             if (!httpOnly)
+            {
                 if (WriteCacheFile(data, sessionID, sequenceID, keyManager.CurrentKeyID))
                 {
                     sequenceID++;
                     return true;
                 }
+            }
+            if (!httpOnly)
 #endif
-
-            Debug.LogWarning("Could not deal with buffer: " + BytesToString(data));
+                Debug.LogWarning("Could not deal with buffer: " + BytesToString(data));
 
             return false;
         }
@@ -1243,8 +1245,14 @@ namespace TelemetryTools
                     WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
                     return true;
                 }
+                else
+                {
+                    Debug.LogWarning("Couldn't write cache file becasue it was open or it already exists");
+                    return false;
+                }
             }
-            return false;
+
+            return true;
         }
 
 #endif
@@ -1259,19 +1267,17 @@ namespace TelemetryTools
                     if (!HandleWWWErrors(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID))
                     {
 #if LOCALSAVEENABLED
-                        if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID))
-                            DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
+                        WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID);
+                        DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
+                        
 #else
                         ConnectionLogger.Instance.AddLostData(wwwData.Length);
-                        DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
+                        DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
 #endif
                     }
                 }
-                else // !wwwBusy
-                    DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
             }
-            else // www == null
-                DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
+            
         }
 #endif
 
