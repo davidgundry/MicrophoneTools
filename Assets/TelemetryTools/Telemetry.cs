@@ -624,9 +624,6 @@ namespace TelemetryTools
             return partBuffer;
         }
 
-
-
-
         public void SendFrame()
         {
             System.Text.StringBuilder sb = new System.Text.StringBuilder();
@@ -916,6 +913,7 @@ namespace TelemetryTools
                 if ((www.isDone) && (!string.IsNullOrEmpty(www.error)))
                 {
                     Debug.LogWarning("Send Data Error: " + www.error);
+                    ConnectionLogger.Instance.HTTPError();
                     return false;
                 }
                 else if (www.isDone)
@@ -927,6 +925,7 @@ namespace TelemetryTools
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
 				}
             }
+            ConnectionLogger.Instance.HTTPSuccess();
             return true;
         }
 
@@ -1236,17 +1235,14 @@ namespace TelemetryTools
                 {
                     if (!HandleWWWErrors(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID))
                     {
-                        ConnectionLogger.Instance.HTTPError();
 #if LOCALSAVEENABLED
                         if (WriteCacheFile(wwwData, wwwSessionID, wwwSequenceID, wwwKeyID))
                             DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
 #else
-                        lostData += (uint) wwwData.Length;
+                        ConnectionLogger.Instance.AddLostData(wwwData.Length);
                         DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy);
 #endif
                     }
-                    else
-                        ConnectionLogger.Instance.HTTPSuccess();
                 }
                 else // !wwwBusy
                     DisposeWWW(ref www, ref wwwData, ref wwwSessionID, ref wwwSequenceID, ref wwwBusy, ref wwwKey, ref wwwKeyID);
