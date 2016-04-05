@@ -219,10 +219,12 @@ namespace TelemetryTools
             if (httpPostEnabled)
             {
 #if LOCALSAVEENABLED
-                if (!userDatawwwBusy)
-                    UploadBacklogOfUserData();
-                if ((!offBufferFull) && (!wwwBusy))
-                    UploadBacklogOfCacheFiles();
+                if ((!userDatawwwBusy) && (ConnectionLogger.Instance.UploadUserDataDelay <= 0))
+                    if (!UploadBacklogOfUserData())
+                        ConnectionLogger.Instance.UploadUserDataDelay = 1000;
+                if ((!offBufferFull) && (!wwwBusy) && (ConnectionLogger.Instance.UploadCacheFilesDelay <= 0))
+                    if (!UploadBacklogOfCacheFiles())
+                        ConnectionLogger.Instance.UploadCacheFilesDelay = 1000;
 #endif
 
                 if ((!offBufferFull) && (!wwwBusy))
@@ -293,7 +295,7 @@ namespace TelemetryTools
                 Debug.LogWarning("Cannot log user data without a unique key.");
         }
 
-        private void UploadUserData(KeyID key)
+        private bool UploadUserData(KeyID key)
         {
             if (keyManager.HasKey)
             {
@@ -301,12 +303,16 @@ namespace TelemetryTools
                     SendUserDataByHTTPPost(userDataURL, userData, keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
                 else
                     SendUserDataByHTTPPost(userDataURL, LoadUserData(key), keyManager.GetKeyByID(key), key, ref userDatawww, ref userDatawwwBusy, ref userDatawwwKeyID);
+                return true;
             }
             else
+            {
                 Debug.LogWarning("Cannot upload user data of keyID " + key + " because we have not yet fetched that key.");
+                return false;
+            }
         }
 
-        public void UploadBacklogOfUserData()
+        public bool UploadBacklogOfUserData()
         {
             int i = 0;
             while ((!userDatawwwBusy) && (i < userDataFilesList.Count))
@@ -320,9 +326,10 @@ namespace TelemetryTools
 
                 i++;
             }
+            return userDatawwwBusy; // If www is busy, we successfully found something to upload
         }
 
-        private void UploadBacklogOfCacheFiles()
+        private bool UploadBacklogOfCacheFiles()
         {
             if (cachedFilesList.Count > 0)
             {
@@ -366,12 +373,12 @@ namespace TelemetryTools
                     else
                     {
                         Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
-                        cachedFilesList.RemoveAt(i);
                     }
 
                     i++;
                 }
             }
+            return wwwBusy; // If www is busy, we successfully found something to upload
         }
 
         private static void SendUserDataByHTTPPost( URL userDataURL,

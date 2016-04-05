@@ -63,13 +63,24 @@ namespace TelemetryTools
 
         private Bytes lostData;
         public Bytes LostData { get { return lostData; } }
-        public void AddLostData(Bytes data) { lostData += data; } 
+        public void AddLostData(Bytes data) { lostData += data; }
+
+        private Milliseconds uploadUserDataDelay;
+        public Milliseconds UploadUserDataDelay { get { return uploadUserDataDelay; } set { uploadUserDataDelay = value; } }
+        private Milliseconds uploadCacheFilesDelay;
+        public Milliseconds UploadCacheFilesDelay { get { return uploadCacheFilesDelay; } set { uploadCacheFilesDelay = value; } }
 
         public void Update()
         {
+            Milliseconds elapsedTime = (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - lastLoggingUpdate;
             dataLogged += dataLoggedSinceUpdate;
 
-            BytesPerSecond bytePerSecond = 1000 / Math.Max(((DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond) - lastLoggingUpdate), 1);
+            if (uploadUserDataDelay > 0)
+                uploadUserDataDelay -= elapsedTime;
+            if (uploadCacheFilesDelay > 0)
+                uploadCacheFilesDelay -= elapsedTime;
+
+            BytesPerSecond bytePerSecond = 1000 / Math.Max(elapsedTime, 1);
             loggingRate = bytePerSecond * dataLoggedSinceUpdate;
             httpPostRate = bytePerSecond * dataSentByHTTPSinceUpdate;
             localFileSaveRate = bytePerSecond * dataSavedToFileSinceUpdate;
