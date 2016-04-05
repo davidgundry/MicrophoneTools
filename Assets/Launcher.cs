@@ -19,7 +19,7 @@ public class Launcher : MonoBehaviour {
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
-        TelemetryTools.Telemetry.Instance.ChangeKey();
+        TelemetryTools.Telemetry.Instance.KeyManager.ChangeKey();
         telemetryMonitor.gameObject.SetActive(true);
 
         Application.LoadLevel("data-management");

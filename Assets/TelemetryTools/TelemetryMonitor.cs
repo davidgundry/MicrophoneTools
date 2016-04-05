@@ -20,18 +20,18 @@ namespace TelemetryTools
         {
             string baseurl = PlayerPrefs.GetString("URL");
             TelemetryTools.Telemetry.Instance.UploadURL = baseurl + "/import.php";
-            TelemetryTools.Telemetry.Instance.KeyServer = baseurl + "/key.php";
+            TelemetryTools.Telemetry.Instance.KeyManager.KeyServer = baseurl + "/key.php";
             TelemetryTools.Telemetry.Instance.UserDataURL = baseurl + "/userdata.php";
         }
 
         public void ChangeKey()
         {
-            TelemetryTools.Telemetry.Instance.ChangeKey();
+            TelemetryTools.Telemetry.Instance.KeyManager.ChangeKey();
         }
 
         public void ChangeKey(uint key)
         {
-            TelemetryTools.Telemetry.Instance.ChangeKey(key);
+            TelemetryTools.Telemetry.Instance.KeyManager.ChangeKey(key);
         }
 
         public void WriteEverything()

@@ -17,7 +17,7 @@ namespace TelemetryTools
             TelemetryTools.TelemetryMonitor telemetryMonitor = (TelemetryTools.TelemetryMonitor)target;
 
             EditorGUILayout.LabelField("UploadURL", TelemetryTools.Telemetry.Instance.UploadURL);
-            EditorGUILayout.LabelField("Key Server", TelemetryTools.Telemetry.Instance.KeyServer);
+            EditorGUILayout.LabelField("Key Server", TelemetryTools.Telemetry.Instance.KeyManager.KeyServer);
             EditorGUILayout.LabelField("User Data URL", TelemetryTools.Telemetry.Instance.UserDataURL);
 
             EditorGUILayout.Space();
@@ -38,9 +38,9 @@ namespace TelemetryTools
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.LabelField("Used Keys", TelemetryTools.Telemetry.Instance.NumberOfUsedKeys.ToString());
-            EditorGUILayout.LabelField("Keys", TelemetryTools.Telemetry.Instance.NumberOfKeys.ToString());
-            EditorGUILayout.LabelField("Current Key", "ID:" + TelemetryTools.Telemetry.Instance.CurrentKeyID.ToString() + " " + TelemetryTools.Telemetry.Instance.CurrentKey);
+            EditorGUILayout.LabelField("Used Keys", TelemetryTools.Telemetry.Instance.KeyManager.NumberOfUsedKeys.ToString());
+            EditorGUILayout.LabelField("Keys", TelemetryTools.Telemetry.Instance.KeyManager.NumberOfKeys.ToString());
+            EditorGUILayout.LabelField("Current Key", "ID:" + TelemetryTools.Telemetry.Instance.KeyManager.CurrentKeyID.ToString() + " " + TelemetryTools.Telemetry.Instance.KeyManager.CurrentKey);
 
             /*EditorGUILayout.IntField("Key", keyToChangeTo);
             if (GUILayout.Button("Change Key"))

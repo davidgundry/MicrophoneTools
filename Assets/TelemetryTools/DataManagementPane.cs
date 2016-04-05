@@ -36,7 +36,7 @@ namespace TelemetryTools
         public void SetURL()
         {
             TelemetryTools.Telemetry.Instance.UploadURL = URLInputText.text + "/import.php";
-            TelemetryTools.Telemetry.Instance.KeyServer = URLInputText.text + "/key.php";
+            TelemetryTools.Telemetry.Instance.KeyManager.KeyServer = URLInputText.text + "/key.php";
             TelemetryTools.Telemetry.Instance.UserDataURL = URLInputText.text + "/userdata.php";
             infoText.text = MakeText();
             PlayerPrefs.SetString("URL", URLInputText.text);
@@ -52,16 +52,16 @@ namespace TelemetryTools
             sb.Append("\nUser Data Files ");
             sb.Append(TelemetryTools.Telemetry.Instance.UserDataFiles.ToString());
             sb.Append("\nKeys Used ");
-            sb.Append(TelemetryTools.Telemetry.Instance.NumberOfUsedKeys.ToString());
+            sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.NumberOfUsedKeys.ToString());
             sb.Append("\nKeys Fetched ");
-            sb.Append(TelemetryTools.Telemetry.Instance.NumberOfKeys.ToString());
-            for (int i = 0; i < TelemetryTools.Telemetry.Instance.Keys.Length; i++)
-                sb.Append("\n"+i+":" + TelemetryTools.Telemetry.Instance.Keys[i]);
+            sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.NumberOfKeys.ToString());
+            for (int i = 0; i < TelemetryTools.Telemetry.Instance.KeyManager.Keys.Length; i++)
+                sb.Append("\n" + i + ":" + TelemetryTools.Telemetry.Instance.KeyManager.Keys[i]);
 
             sb.Append("\nUpload URL ");
             sb.Append(TelemetryTools.Telemetry.Instance.UploadURL);
             sb.Append("\nKey Server ");
-            sb.Append(TelemetryTools.Telemetry.Instance.KeyServer);
+            sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.KeyServer);
             sb.Append("\nUser Data URL ");
             sb.Append(TelemetryTools.Telemetry.Instance.UserDataURL);
 
