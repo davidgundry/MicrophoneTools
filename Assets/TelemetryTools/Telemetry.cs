@@ -340,7 +340,7 @@ namespace TelemetryTools
                 SequenceID sqID;
                 KeyID keyID;
                 int i = 0;
-                while ((!wwwBusy) && (i < cachedFilesList.Count))
+                if (!wwwBusy)
                 {
                     ParseCacheFileName(cacheDirectory, cachedFilesList[i], out snID, out sqID, out keyID);
                     if (keyManager.KeyIsValid(keyID))
@@ -350,7 +350,7 @@ namespace TelemetryTools
                             if ((data.Length > 0) && (snID != null) && (sqID != null) && (keyID != null)) // key here could be empty because it was not known when the file was saved
                             {
                                 SendByHTTPPost(data, snID, sqID, fileExtension, keyManager.GetKeyByID(keyID), keyID, uploadURL, ref www, out wwwData, out wwwSequenceID, out wwwSessionID, out wwwBusy, out wwwKey, out wwwKeyID);
-                                File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[0]).FullName);
+                                File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[i]).FullName);
                                 cachedFilesList.RemoveAt(i);
                                 WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
                             }
@@ -373,12 +373,13 @@ namespace TelemetryTools
                         else
                         {
                             Debug.LogWarning("Error loading from cache file for KeyID:  " + (keyID == null ? "null" : keyID.ToString()));
+                            File.Delete(GetFileInfo(cacheDirectory, cachedFilesList[i]).FullName);
+                            cachedFilesList.RemoveAt(i);
+                            WriteStringsToFile(cachedFilesList.ToArray(), GetFileInfo(cacheDirectory, cacheListFilename));
                         }
                     }
                     else
                         Debug.LogWarning("Cannot upload cache file because KeyID " + keyID.ToString() + " has not been retrieved from the key server.");
-
-                    i++;
                 }
             }
             return wwwBusy; // If www is busy, we successfully found something to upload
