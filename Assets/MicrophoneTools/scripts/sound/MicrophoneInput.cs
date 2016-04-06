@@ -71,7 +71,7 @@ namespace MicTools
             switch (e)
             {
                 case SoundEvent.AudioStart:
-                    yin = new Yin(AudioSettings.outputSampleRate, yinBufferSize);
+                    yin = new Yin(microphoneBuffer.SampleRate, yinBufferSize);
                     LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
                     LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
                     break;
@@ -172,7 +172,10 @@ namespace MicTools
                 {
                     Algorithm(window);
 
+                    //float[] fixedWindow = new float[1024];
+                    //System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
                     LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
+                    //LogMT.SendStreamValueBlock("MTaudio", window);
                     LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
                     LogMT.SendStreamValue("MTlvl", level);
                     LogMT.SendStreamValue("MTnoi", noiseIntensity);
@@ -208,13 +211,13 @@ namespace MicTools
                             (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar) - 1)
                             + Mathf.Pow(level - noiseIntensity, 2))
                         / Mathf.Min(20, windowsSoFar));
-                    noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(AudioSettings.outputSampleRate * 4, samplesSoFar);
+                    noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(microphoneBuffer.SampleRate * 4, samplesSoFar);
                 }
                 float mean = SumIntensity(data) / data.Length;
 
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
-                FrequencyBandToSampleOffsets(data.Length, AudioSettings.outputSampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
+                FrequencyBandToSampleOffsets(data.Length, microphoneBuffer.SampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
                 normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
                 // but kills detection on phone
                 // and performance!? - unless window size is limited to keep low the iterations

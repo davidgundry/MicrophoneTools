@@ -23,7 +23,7 @@ namespace MicTools
         private bool prewarned = false;
         private bool prewarningSent = false;
 
-        private AudioSource audioSource;
+        //private AudioSource audioSource;
         private bool listening = false;
         private const int defaultSampleRate = 44100;
         public int sampleRate = defaultSampleRate;
@@ -32,6 +32,8 @@ namespace MicTools
         public int Channels { get { return channels; } }
 
         private MicrophoneUI microphoneUI;
+
+        public AudioClip audioClip;
 
 
         void Awake()
@@ -59,11 +61,11 @@ namespace MicTools
             if (audioMixer == null)
                 LogMT.LogError("MicrophoneController: Could not find Audio Mixer");
 
-            audioSource = this.GetComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.Stop();
-            audioSource.loop = true;
-            audioSource.outputAudioMixerGroup = audioMixer.FindMatchingGroups("Master")[0];
+            //audioSource = this.GetComponent<AudioSource>();
+            //audioSource.playOnAwake = false;
+            //audioSource.Stop();
+            //audioSource.loop = true;
+            //audioSource.outputAudioMixerGroup = audioMixer.FindMatchingGroups("Master")[0];
         }
 
         /*
@@ -73,9 +75,9 @@ namespace MicTools
         {
             if (listening)
             {
-                if (!audioSource.isPlaying)
-                    if (Microphone.GetPosition(microphoneDeviceName) > 0) // check if microphone is initialised
-                        audioSource.Play();
+                //if (!audioSource.isPlaying)
+                    //if (Microphone.GetPosition(microphoneDeviceName) > 0) // check if microphone is initialised
+                        //audioSource.Play();
             }
             else
                 StartListening();
@@ -142,7 +144,7 @@ namespace MicTools
                         MicrophoneUpdate();
                     else
                     {
-                        if ((listening) || (audioSource.isPlaying))
+                        if ((listening))// || (audioSource.isPlaying))
                             StopListening();
                     }
                 }
@@ -162,15 +164,18 @@ namespace MicTools
         {
             if (testClip != null)
             {
-                audioSource.clip = testClip;
-                channels = audioSource.clip.channels;
-                sampleRate = audioSource.clip.frequency;
-                audioSource.Play();
+                audioClip = testClip;
+                channels = audioClip.channels;
+                sampleRate = audioClip.frequency;
+                //audioSource.Play();
             }
             else
             {
-                audioSource.clip = Microphone.Start(microphoneDeviceName, true, 1, sampleRate);
+                //AudioClip.PCMReaderCallback pcm = new AudioClip.PCMReaderCallback(AudioClipPCM);
+                audioClip = Microphone.Start(microphoneDeviceName, true, 1, sampleRate);//(int) Mathf.Ceil(1024f/(float)sampleRate), sampleRate);
                 channels = 1; // Fetching the number of channels from the audio clip gives incorrect results (for some reason)
+                //audioSource.clip = audioClip;
+                //audioSource.Play();
             }
 
             LogMT.Log("Audio Channels: " + channels);
@@ -181,14 +186,14 @@ namespace MicTools
 
         private void StopListening()
         {
-            audioSource.Stop();
+            //audioSource.Stop();
 
             if (testClip == null)
-                Destroy(audioSource.clip);
+                Destroy(audioClip);
             else
             {
                 Microphone.End(microphoneDeviceName);
-                audioSource.clip = null;
+                audioClip = null;
             }
 
             listening = false;
