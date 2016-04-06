@@ -40,6 +40,7 @@ namespace MicTools
                     audioClip = GetComponent<MicrophoneController>().audioClip;
                     buffer = new float[audioClip.samples*audioClip.channels];
                     sampleRate = audioClip.frequency;
+                    gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
                     break;
                 case SoundEvent.AudioEnd:
                     audioPlaying = false;

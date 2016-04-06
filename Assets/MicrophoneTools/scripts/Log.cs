@@ -8,6 +8,7 @@ namespace MicTools
         PermissionRequired,
         PermissionGranted,
         MicrophoneReady,
+        BufferReady,
         SyllableStart,
         SyllableEnd,
         InputStart,

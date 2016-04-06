@@ -70,7 +70,7 @@ namespace MicTools
         {
             switch (e)
             {
-                case SoundEvent.AudioStart:
+                case SoundEvent.BufferReady:
                     yin = new Yin(microphoneBuffer.SampleRate, yinBufferSize);
                     LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
                     LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
@@ -163,17 +163,19 @@ namespace MicTools
                 elapsedTime = 0;
                 float[] window = NewWindow();
 
+                float[] fixedWindow = new float[yinBufferSize];
+                System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
+
                 //TODO: This should work reliably even if we are regularly getting more samples in than expected
-                if (window.Length == yinBufferSize)
+                //if (window.Length == yinBufferSize)
                     if (yin != null)
-                        pitch = yin.getPitch(window);
+                        pitch = yin.getPitch(fixedWindow);
 
                 if (window.Length > 0)
                 {
                     Algorithm(window);
 
-                    //float[] fixedWindow = new float[1024];
-                    //System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
+                    
                     LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
                     //LogMT.SendStreamValueBlock("MTaudio", window);
                     LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
