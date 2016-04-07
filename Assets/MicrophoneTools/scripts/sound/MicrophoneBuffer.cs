@@ -26,11 +26,6 @@ namespace MicTools
         /// </summary>
         public int SampleRate { get { return sampleRate; } }
 
-        void Start()
-        {
-            //buffer = new float[44100];
-        }
-
         void OnSoundEvent(SoundEvent soundEvent)
         {
             switch (soundEvent)
@@ -60,34 +55,12 @@ namespace MicTools
                 {
                     float[] newData = new float[samplesPassed];
                     audioClip.GetData(newData, bufferPos);
-                    //TelemetryTools.Telemetry.Instance.SendStreamValue("samplesPassed", samplesPassed);
-
-                    //TelemetryTools.Telemetry.Instance.SendStreamValue("newData.Length", newData.Length);
-                    //TelemetryTools.Telemetry.Instance.SendStreamValue("buffer.Length", buffer.Length);
-                    //TelemetryTools.Telemetry.Instance.SendStreamValue("bufferPos", bufferPos);
-
                     BufferData(newData);
-
-                    /*if (newData.Length < buffer.Length - bufferPos)
-                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos, newData.Length);
-                    else
-                    {
-                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos, buffer.Length - bufferPos);
-                        //System.Buffer.BlockCopy(newData, buffer.Length - bufferPos, buffer, 0, newData.Length - (buffer.Length - bufferPos)-1);
-                    }
-                    bufferPos = (bufferPos + samplesPassed) % buffer.Length;*/
-                    //TelemetryTools.Telemetry.Instance.SendStreamValueBlock("buffer", buffer);
                 }
             }
             else
                 previousDSPTime = AudioSettings.dspTime;
         }
-
-        /*void OnAudioFilterRead(float[] data, int channels)
-        {
-            if (audioPlaying)
-                BufferData(data);
-        }*/
 
         private void BufferData(float[] data)
         {
