@@ -25,10 +25,7 @@ namespace MicTools
         public const float presenceMultiple = 1f;
 
         private const int maxWindowLengthForAutocorrelation = 1024;
-        private const int minNewSamplesPerWindow = 1024;
-        private const int yinBufferSize = 1024;
-
-        private const int windowSize = 2048;
+        private const int windowSize = 1024;
 
         private float peak = 0f;
         private float dip = 0f;
@@ -73,8 +70,8 @@ namespace MicTools
             switch (e)
             {
                 case SoundEvent.BufferReady:
-                    yin = new Yin(microphoneBuffer.SampleRate, yinBufferSize);
-                    LogMT.Log("Min Window Size for Algorithm: " + minNewSamplesPerWindow);
+                    yin = new Yin(microphoneBuffer.SampleRate, windowSize);
+                    LogMT.Log("Window Size for Algorithm: " + windowSize);
                     LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
                     break;
             }
@@ -102,7 +99,7 @@ namespace MicTools
             dipped = true;
 
             AudioClip testClip = GetComponent<AudioSource>().clip;
-            int length = minNewSamplesPerWindow;// (int)(GetComponent<MicrophoneController>().SampleRate * timeStep);
+            int length = windowSize;// (int)(GetComponent<MicrophoneController>().SampleRate * timeStep);
             float[] samples = new float[length];
 
             if (testClip != null)
@@ -168,13 +165,10 @@ namespace MicTools
             samplesSoFar += windowSize;
             windowsSoFar++;
 
-            float[] fixedWindow = new float[yinBufferSize];
-            System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
-
             //TODO: This should work reliably even if we are regularly getting more samples in than expected
             //if (window.Length == yinBufferSize)
-                if (yin != null)
-                    pitch = yin.getPitch(fixedWindow);
+            if (yin != null)
+                pitch = yin.getPitch(window);
 
             //if (window.Length > 0)
             //{
@@ -211,7 +205,6 @@ namespace MicTools
             if (!SinglePolaity(data)) // Here to easily take out artifacts found on my poor desktop mic
             {
                 sumIntensity = SumAbsIntensity(data);
-                LogMT.SendStreamValueBlock("data", data);
                 level = sumIntensity / data.Length;
                 /*if (!syllable)
                 {
@@ -340,7 +333,6 @@ namespace MicTools
         {
             float[] newSamples = new float[count];
 
-
             if (microphoneBuffer.Buffer.Length > 0)
             {
                 if (microphoneBuffer.BufferPos - count >= 0)
@@ -358,7 +350,7 @@ namespace MicTools
             return newSamples;
         }
 
-        private int NewSamples
+        /*private int NewSamples
         {
             get
             {
@@ -394,7 +386,7 @@ namespace MicTools
             }
 
             return new float[0];
-        }
+        }*/
 
         /*private void DetectPresence()
         {
