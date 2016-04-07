@@ -203,7 +203,7 @@ namespace MicTools
 
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
-                FrequencyBandToSampleOffsets(data.Length, microphoneBuffer.SampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
+                FrequencyBandToSampleOffsets(data.Length, microphoneBuffer.SampleRate, 80, 600, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
                 normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow);
 
                 DipTracking();
