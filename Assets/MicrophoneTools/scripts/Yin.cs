@@ -129,10 +129,9 @@ namespace MicTools
 
         void cumulativeMeanNormalizedDifference()
         {
-            int tau;
             yinBuffer[0] = 1;
-            float runningSum = 0;
-            for (tau = 1; tau < halfBufferSize; tau++)
+            float runningSum = 0.1f; // This was 0 but causing NaNs!
+            for (int tau = 1; tau < halfBufferSize; tau++)
             {
                 runningSum += yinBuffer[tau];
                 yinBuffer[tau] *= tau / runningSum;
@@ -141,12 +140,10 @@ namespace MicTools
 
         void difference(float[] buffer)
         {
-            int index;
-            int tau;
             float delta;
-            for (tau = 0; tau < halfBufferSize; tau++)
+            for (int tau = 0; tau < halfBufferSize; tau++)
             {
-                for (index = 0; index < halfBufferSize; index++)
+                for (int index = 0; index < halfBufferSize; index++)
                 {
                     delta = buffer[index] - buffer[index + tau];
                     yinBuffer[tau] += delta * delta;
