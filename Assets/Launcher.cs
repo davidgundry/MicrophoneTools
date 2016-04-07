@@ -30,7 +30,7 @@ public class Launcher : MonoBehaviour {
         if (level == 0)
         {
             Screen.orientation = ScreenOrientation.LandscapeLeft;
-            Application.LoadLevel("wordplane");
+            Application.LoadLevel("collect");
         }
     }
 }

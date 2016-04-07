@@ -11,7 +11,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: David Gundry
-  productName: WordPlane
+  productName: Collect
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_ShowUnitySplashScreen: 1
@@ -85,7 +85,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleIdentifier: uk.co.gundry.david.MicrophoneTools.WordPlane
+  bundleIdentifier: uk.co.gundry.david.MicrophoneTools.Collect
   bundleVersion: 1.0
   preloadedAssets: []
   metroEnableIndependentInputSource: 0
@@ -164,7 +164,7 @@ PlayerSettings:
   - m_BuildTarget: 
     m_Icons:
     - serializedVersion: 2
-      m_Icon: {fileID: 2800000, guid: 94011f61c2cb36446b634a32472b220c, type: 3}
+      m_Icon: {fileID: 2800000, guid: d19317b2ee5505049b35d77bd4088f37, type: 3}
       m_Width: 128
       m_Height: 128
   m_BuildTargetBatching:
