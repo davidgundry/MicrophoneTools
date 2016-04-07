@@ -162,7 +162,6 @@ namespace MicTools
                 pitch = yin.getPitch(window);
 
             Algorithm(window);
-
                     
             LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
             //LogMT.SendStreamValueBlock("MTaudio", window);
@@ -179,7 +178,6 @@ namespace MicTools
             LogMT.SendStreamValue("MTwsf", windowsSoFar);
 
             LogMT.SendStreamValue("MTdt", Time.deltaTime);
-
         }
         
 
@@ -206,9 +204,7 @@ namespace MicTools
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
                 FrequencyBandToSampleOffsets(data.Length, microphoneBuffer.SampleRate, 80, 900, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
-                normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow); // Good at getting rid of unvoiced syllables, and clicks/claps?
-                // but kills detection on phone
-                // and performance!? - unless window size is limited to keep low the iterations
+                normalisedPeakAutocorrelation = DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow);
 
                 DipTracking();
                 if (normalisedPeakAutocorrelation > 0.8f) // If we're using the periodicity, check that the normalised value is high before considering it
