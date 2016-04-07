@@ -227,8 +227,12 @@ namespace MicTools
                 // but kills detection on phone
                 // and performance!? - unless window size is limited to keep low the iterations
 
+                DipTracking();
                 if (normalisedPeakAutocorrelation > 0.5f) // If we're using the periodicity, check that the normalised value is high before considering it
+                {
+                    peak = Mathf.Max(peak, level);
                     PeakPicking();
+                }
 
                 //if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
                 //    DetectSyllables();
@@ -240,25 +244,30 @@ namespace MicTools
         }
 
         /// <summary>
-        /// Peak-picking, keeps track of dip and peak, and checks whether a peak has been found.
+        /// Peak-picking, checks whether a peak has been found.
         /// </summary>
         private void PeakPicking()
         {
-            dip = Mathf.Min(dip, level);
-            peak = Mathf.Max(peak, level);
-
-            if (((peak - dip) * dipMultiple > peak) && (!dipped) && (dip < level))
-            {
-                dipped = true;
-                peak = dip;
-            }
-
             if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level))// && (level > noiseIntensity + caution * standardDeviation)) // Removed because should no longer have an effect
             {
                 dipped = false;
                 syllables++;
                 gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllablePeak, SendMessageOptions.DontRequireReceiver);
                 dip = peak;
+            }
+        }
+
+        /// <summary>
+        /// Keeps track of dip and peak for peak-picking
+        /// </summary>
+        private void DipTracking()
+        {
+            dip = Mathf.Min(dip, level);
+
+            if (((peak - dip) * dipMultiple > peak) && (!dipped) && (dip < level))
+            {
+                dipped = true;
+                peak = dip;
             }
         }
 
