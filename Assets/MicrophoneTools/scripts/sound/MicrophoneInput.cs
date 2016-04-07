@@ -187,7 +187,7 @@ namespace MicTools
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
                 FrequencyBandToSampleOffsets(data.Length, microphoneBuffer.SampleRate, 80, 300, out sampleOffsetHigh, out sampleOffsetLow); // was 80,900
-                normalisedPeakAutocorrelation = (normalisedPeakAutocorrelation + DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow))/2;
+                normalisedPeakAutocorrelation = (normalisedPeakAutocorrelation + normalisedPeakAutocorrelation + DoNormalisedPeakAutocorrelation(data, mean, sampleOffsetHigh, sampleOffsetLow)) / 3;
 
                 DipTracking();
                 if (normalisedPeakAutocorrelation > npaThreshold) // If we're using the periodicity, check that the normalised value is high before considering it
