@@ -239,6 +239,26 @@ namespace MicTools
                 level = 0;
         }
 
+        private void PeakPicking()
+        {
+            dip = Mathf.Min(dip, level);
+            peak = Mathf.Max(peak, level);
+
+            if (((peak - dip) * dipMultiple > peak) && (!dipped) && (dip < level))
+            {
+                dipped = true;
+                peak = dip;
+            }
+
+            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + caution * standardDeviation))
+            {
+                dipped = false;
+                syllables++;
+                gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllablePeak, SendMessageOptions.DontRequireReceiver);
+                dip = peak;
+            }
+        }
+
         //Not sure I'm doing the right thing here...
         private static void FrequencyBandToSampleOffsets( int windowSize,
                                                           int sampleRate, 
@@ -337,7 +357,7 @@ namespace MicTools
             return new float[0];
         }
 
-        private void DetectPresence()
+        /*private void DetectPresence()
         {
             if (level > noiseIntensity * presenceMultiple)
             {
@@ -358,29 +378,9 @@ namespace MicTools
             }
             else
                 inputDetectionTimeout--;
-        }
+        }*/
 
-        private void PeakPicking()
-        {
-            dip = Mathf.Min(dip, level);
-            peak = Mathf.Max(peak, level);
-
-            if (((peak - dip) * dipMultiple > peak) && (!dipped) && (dip < level))
-            {
-                dipped = true;
-                peak = dip;
-            }
-
-            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + caution * standardDeviation))
-            {
-                dipped = false;
-                syllables++;
-                gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllablePeak, SendMessageOptions.DontRequireReceiver);
-                dip = peak;
-            }
-        }
-
-        private void DetectSyllables()
+        /*private void DetectSyllables()
         {
             if (level > noiseIntensity + standardDeviation/2)//* highActivationMultiple))
             {
@@ -399,7 +399,7 @@ namespace MicTools
                     gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllableEnd, SendMessageOptions.DontRequireReceiver);
                 }
             }
-        }
+        }*/
 
         private static float Peak(float[] data)
         {
