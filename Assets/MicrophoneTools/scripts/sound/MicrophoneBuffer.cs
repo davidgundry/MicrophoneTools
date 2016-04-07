@@ -10,21 +10,27 @@ namespace MicTools
     public class MicrophoneBuffer : MonoBehaviour
     {
         private float[] buffer;
+        /// <summary>
+        /// An array of floats between -1 and 1 representing audio samples. This is a circular buffer, the write head is BufferPos
+        /// </summary>
         public float[] Buffer { get { return buffer; } }
+
         private int bufferPos;
+        /// <summary>
+        /// The write head of the circular buffer in Buffer. The most recent data preceeds this index, non-inclusive.
+        /// </summary>
         public int BufferPos { get { return bufferPos; } }
 
-        private bool audioPlaying = false;
-
-        private double previousDSPTime;
-        private double deltaDSPTime;
-
-        AudioClip audioClip;
         private int sampleRate;
         /// <summary>
         /// The sample rate of the data in the buffer. This may or may not be the same as AudioSettings.outputSampleRate, depending on where MicrophoneBuffer is sourcing the data from.
         /// </summary>
         public int SampleRate { get { return sampleRate; } }
+
+        private AudioClip audioClip;
+        private bool audioPlaying = false;
+        private double previousDSPTime;
+        private double deltaDSPTime;
 
         void OnSoundEvent(SoundEvent soundEvent)
         {
