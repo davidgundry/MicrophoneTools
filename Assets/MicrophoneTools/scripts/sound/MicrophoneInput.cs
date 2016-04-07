@@ -239,6 +239,9 @@ namespace MicTools
                 level = 0;
         }
 
+        /// <summary>
+        /// Peak-picking, keeps track of dip and peak, and checks whether a peak has been found.
+        /// </summary>
         private void PeakPicking()
         {
             dip = Mathf.Min(dip, level);
@@ -250,7 +253,7 @@ namespace MicTools
                 peak = dip;
             }
 
-            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level) && (level > noiseIntensity + caution * standardDeviation))
+            if (((peak - dip) * dipMultiple > peak) && (dipped) && (peak > level))// && (level > noiseIntensity + caution * standardDeviation)) // Removed because should no longer have an effect
             {
                 dipped = false;
                 syllables++;
