@@ -6,7 +6,6 @@ using MicTools;
 
 namespace MicTools
 {
-    [RequireComponent(typeof(AudioSource))]
     [AddComponentMenu("MicrophoneTools/MicrophoneController")]
     public class MicrophoneController : MonoBehaviour
     {
