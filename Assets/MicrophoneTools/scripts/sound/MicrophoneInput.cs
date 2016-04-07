@@ -33,7 +33,6 @@ namespace MicTools
 
         private int bufferReadPos = 0;
         //private const float timeStep = 0.05f;
-        private double elapsedTime = 0;
 
         private int inputDetectionTimeout = 0;
 
@@ -45,8 +44,8 @@ namespace MicTools
         private int samplesSoFar = 0;
         private int windowsSoFar = 0;
 
-        private bool inputDetected;
-        public bool InputDetected { get { return inputDetected; } }
+        //private bool inputDetected;
+        //public bool InputDetected { get { return inputDetected; } }
         private float level = 0;
         public float Level { get { return level; } }
 
@@ -154,44 +153,30 @@ namespace MicTools
                 LogMT.Log("Syllables: " + TestHarness());
                 test = false;
             }
-            elapsedTime += Time.deltaTime;
-            LogMT.SendStreamValue("MTet", elapsedTime);
-            //if (elapsedTime > timeStep)
-            //if (NewSamples >= minNewSamplesPerWindow)
-            //{
-            elapsedTime = 0;
-            //float[] window = NewWindow();
+
             float[] window = GetMostRecentSamples(windowSize);
             samplesSoFar += windowSize;
             windowsSoFar++;
 
-            //TODO: This should work reliably even if we are regularly getting more samples in than expected
-            //if (window.Length == yinBufferSize)
             if (yin != null)
                 pitch = yin.getPitch(window);
 
-            //if (window.Length > 0)
-            //{
-                Algorithm(window);
+            Algorithm(window);
 
                     
-                LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
-                //LogMT.SendStreamValueBlock("MTaudio", window);
-                LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
-                LogMT.SendStreamValue("MTlvl", level);
-                LogMT.SendStreamValue("MTnoi", noiseIntensity);
-                LogMT.SendStreamValue("MTsd", standardDeviation);
-                LogMT.SendStreamValue("MTpek", peak);
-                LogMT.SendStreamValue("MTdip", dip);
-                LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
-                LogMT.SendStreamValue("MTsbs", syllables);
-                //LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
-                LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
-                LogMT.SendStreamValue("MTssf", samplesSoFar);
-                LogMT.SendStreamValue("MTwsf", windowsSoFar);
-                LogMT.SendStreamValue("MTind", Convert.ToInt32(inputDetected));
-            //}
-            //}
+            LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
+            //LogMT.SendStreamValueBlock("MTaudio", window);
+            LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
+            LogMT.SendStreamValue("MTlvl", level);
+            LogMT.SendStreamValue("MTnoi", noiseIntensity);
+            LogMT.SendStreamValue("MTsd", standardDeviation);
+            LogMT.SendStreamValue("MTpek", peak);
+            LogMT.SendStreamValue("MTdip", dip);
+            LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
+            LogMT.SendStreamValue("MTsbs", syllables);
+            LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
+            LogMT.SendStreamValue("MTssf", samplesSoFar);
+            LogMT.SendStreamValue("MTwsf", windowsSoFar);
 
             LogMT.SendStreamValue("MTdt", Time.deltaTime);
 
