@@ -9,7 +9,7 @@ namespace MicTools
     [AddComponentMenu("MicrophoneTools/MicrophoneBuffer")]
     public class MicrophoneBuffer : MonoBehaviour
     {
-        private float[] buffer;
+        private float[] buffer = new float[0];
         /// <summary>
         /// An array of floats between -1 and 1 representing audio samples. This is a circular buffer, the write head is BufferPos
         /// </summary>
@@ -61,21 +61,24 @@ namespace MicTools
                 {
                     float[] newData = new float[samplesPassed];
                     audioClip.GetData(newData, bufferPos);
-                    BufferData(newData);
+
+                    if (bufferPos + samplesPassed < buffer.Length)
+                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), samplesPassed * sizeof(float));
+                    else
+                    {
+                        int firstSamples = buffer.Length-bufferPos;
+                        int secondSamples = samplesPassed - firstSamples;
+                        System.Buffer.BlockCopy(newData, 0,                            buffer, bufferPos * sizeof(float), firstSamples * sizeof(float));
+                        System.Buffer.BlockCopy(newData, firstSamples * sizeof(float), buffer, 0,                         secondSamples * sizeof(float));
+                    }
+
+                    bufferPos = (bufferPos + samplesPassed) % buffer.Length;
                 }
             }
             else
                 previousDSPTime = AudioSettings.dspTime;
         }
 
-        private void BufferData(float[] data)
-        {
-            for (int i = 0; i < data.Length; i++)
-            {
-                buffer[bufferPos] = data[i];
-                bufferPos = (bufferPos + 1) % buffer.Length;
-            }
-        }
 
     }
 }

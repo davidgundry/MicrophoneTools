@@ -24,9 +24,11 @@ namespace MicTools
         public const float deactivationMultiple = 1.5848931924611136f; // 1f; //0dB
         public const float presenceMultiple = 1f;
 
-        private const int maxWindowLengthForAutocorrelation = 512;
-        private const int minNewSamplesPerWindow = 512;
-        private const int yinBufferSize = 512;
+        private const int maxWindowLengthForAutocorrelation = 1024;
+        private const int minNewSamplesPerWindow = 1024;
+        private const int yinBufferSize = 1024;
+
+        private const int windowSize = 2048;
 
         private float peak = 0f;
         private float dip = 0f;
@@ -158,41 +160,44 @@ namespace MicTools
             elapsedTime += Time.deltaTime;
             LogMT.SendStreamValue("MTet", elapsedTime);
             //if (elapsedTime > timeStep)
-            if (NewSamples >= minNewSamplesPerWindow)
-            {
-                elapsedTime = 0;
-                float[] window = NewWindow();
+            //if (NewSamples >= minNewSamplesPerWindow)
+            //{
+            elapsedTime = 0;
+            //float[] window = NewWindow();
+            float[] window = GetMostRecentSamples(windowSize);
+            samplesSoFar += windowSize;
+            windowsSoFar++;
 
-                float[] fixedWindow = new float[yinBufferSize];
-                System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
+            float[] fixedWindow = new float[yinBufferSize];
+            System.Buffer.BlockCopy(window, 0, fixedWindow, 0, fixedWindow.Length);
 
-                //TODO: This should work reliably even if we are regularly getting more samples in than expected
-                //if (window.Length == yinBufferSize)
-                    if (yin != null)
-                        pitch = yin.getPitch(fixedWindow);
+            //TODO: This should work reliably even if we are regularly getting more samples in than expected
+            //if (window.Length == yinBufferSize)
+                if (yin != null)
+                    pitch = yin.getPitch(fixedWindow);
 
-                if (window.Length > 0)
-                {
-                    Algorithm(window);
+            //if (window.Length > 0)
+            //{
+                Algorithm(window);
 
                     
-                    LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
-                    //LogMT.SendStreamValueBlock("MTaudio", window);
-                    LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
-                    LogMT.SendStreamValue("MTlvl", level);
-                    LogMT.SendStreamValue("MTnoi", noiseIntensity);
-                    LogMT.SendStreamValue("MTsd", standardDeviation);
-                    LogMT.SendStreamValue("MTpek", peak);
-                    LogMT.SendStreamValue("MTdip", dip);
-                    LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
-                    LogMT.SendStreamValue("MTsbs", syllables);
-                    //LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
-                    LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
-                    LogMT.SendStreamValue("MTssf", samplesSoFar);
-                    LogMT.SendStreamValue("MTwsf", windowsSoFar);
-                    LogMT.SendStreamValue("MTind", Convert.ToInt32(inputDetected));
-                }
-            }
+                LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
+                //LogMT.SendStreamValueBlock("MTaudio", window);
+                LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
+                LogMT.SendStreamValue("MTlvl", level);
+                LogMT.SendStreamValue("MTnoi", noiseIntensity);
+                LogMT.SendStreamValue("MTsd", standardDeviation);
+                LogMT.SendStreamValue("MTpek", peak);
+                LogMT.SendStreamValue("MTdip", dip);
+                LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
+                LogMT.SendStreamValue("MTsbs", syllables);
+                //LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
+                LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
+                LogMT.SendStreamValue("MTssf", samplesSoFar);
+                LogMT.SendStreamValue("MTwsf", windowsSoFar);
+                LogMT.SendStreamValue("MTind", Convert.ToInt32(inputDetected));
+            //}
+            //}
 
             LogMT.SendStreamValue("MTdt", Time.deltaTime);
 
@@ -201,12 +206,12 @@ namespace MicTools
 
         private void Algorithm(float[] data)
         {
-           
             samples = data.Length;
             float sumIntensity = 0;
             if (!SinglePolaity(data)) // Here to easily take out artifacts found on my poor desktop mic
             {
                 sumIntensity = SumAbsIntensity(data);
+                LogMT.SendStreamValueBlock("data", data);
                 level = sumIntensity / data.Length;
                 /*if (!syllable)
                 {
@@ -329,6 +334,28 @@ namespace MicTools
             LogMT.SendStreamValueBlock("MTatc", gammaA);
 
             return normalised;
+        }
+
+        private float[] GetMostRecentSamples(int count)
+        {
+            float[] newSamples = new float[count];
+
+
+            if (microphoneBuffer.Buffer.Length > 0)
+            {
+                if (microphoneBuffer.BufferPos - count >= 0)
+                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, (microphoneBuffer.BufferPos - count) * sizeof(float), newSamples, 0, count * sizeof(float));
+                else
+                {
+                    int headSamples = microphoneBuffer.BufferPos;
+                    int tailSamples = count - microphoneBuffer.BufferPos;
+                    int tailStart = microphoneBuffer.Buffer.Length - tailSamples;
+                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, 0, newSamples, tailSamples*sizeof(float), headSamples*sizeof(float));
+                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, tailStart*sizeof(float), newSamples, 0,   tailSamples*sizeof(float));
+                    
+                }
+            }
+            return newSamples;
         }
 
         private int NewSamples
