@@ -228,7 +228,7 @@ namespace MicTools
                 // and performance!? - unless window size is limited to keep low the iterations
 
                 DipTracking();
-                if (normalisedPeakAutocorrelation > 0.5f) // If we're using the periodicity, check that the normalised value is high before considering it
+                if (normalisedPeakAutocorrelation > 0.8f) // If we're using the periodicity, check that the normalised value is high before considering it
                 {
                     peak = Mathf.Max(peak, level);
                     PeakPicking();
