@@ -24,9 +24,9 @@ namespace MicTools
         public const float deactivationMultiple = 1.5848931924611136f; // 1f; //0dB
         public const float presenceMultiple = 1f;
 
-        private const int maxWindowLengthForAutocorrelation = 1024;
-        private const int minNewSamplesPerWindow = 1024;
-        private const int yinBufferSize = 1024;
+        private const int maxWindowLengthForAutocorrelation = 512;
+        private const int minNewSamplesPerWindow = 512;
+        private const int yinBufferSize = 512;
 
         private float peak = 0f;
         private float dip = 0f;
