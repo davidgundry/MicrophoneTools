@@ -228,7 +228,7 @@ namespace MicTools
                 // and performance!? - unless window size is limited to keep low the iterations
 
                 if (normalisedPeakAutocorrelation > 0.5f) // If we're using the periodicity, check that the normalised value is high before considering it
-                    DetectNuclei();
+                    PeakPicking();
 
                 //if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
                 //    DetectSyllables();
@@ -360,7 +360,7 @@ namespace MicTools
                 inputDetectionTimeout--;
         }
 
-        private void DetectNuclei()
+        private void PeakPicking()
         {
             dip = Mathf.Min(dip, level);
             peak = Mathf.Max(peak, level);
