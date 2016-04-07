@@ -284,7 +284,7 @@ namespace MicTools
             float highest = 0;
 
             //int windowLength = window.Length;
-            int windowLength = Math.Min(window.Length, maxWindowLengthForAutocorrelation); // If we keep the window size really small, it works on the phone. Seems to still do the job. What effect is this having?
+            int windowLength = Math.Min(window.Length, maxWindowLengthForAutocorrelation);
 
             float[] gammaA = new float[sampleOffsetHigh-sampleOffsetLow+1];
 
