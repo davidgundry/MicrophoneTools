@@ -15,8 +15,8 @@ namespace MicTools
 
         public float caution;
         public int syllables = 0;
-        private bool syllable = false;
-        public bool Syllable { get {  return syllable; } }
+        //private bool syllable = false;
+        //public bool Syllable { get {  return syllable; } }
 
         public const float activationMultiple = 1;//1.5848931924611136f;//unfiltered = 1; //0dB   filtered = 1.5848931924611136f;  //2dB
         public const float highActivationMultiple = 1.5848931924611136f; //1.9952623149688797f; //3dB
@@ -82,8 +82,8 @@ namespace MicTools
         {
             int startingSyllables = syllables;
             syllables = 0;
-            bool startingSyllable = syllable;
-            syllable = false;
+            //bool startingSyllable = syllable;
+            //syllable = false;
             float startingNoiseIntensity = noiseIntensity;
             noiseIntensity = 0;
             float startingStandardDeviation = standardDeviation;
@@ -186,7 +186,7 @@ namespace MicTools
                     LogMT.SendStreamValue("MTdip", dip);
                     LogMT.SendStreamValue("MTdpd", Convert.ToInt32(dipped));
                     LogMT.SendStreamValue("MTsbs", syllables);
-                    LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
+                    //LogMT.SendStreamValue("MTslb", Convert.ToInt32(syllable));
                     LogMT.SendStreamValue("MTidt", inputDetectionTimeout);
                     LogMT.SendStreamValue("MTssf", samplesSoFar);
                     LogMT.SendStreamValue("MTwsf", windowsSoFar);

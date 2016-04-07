@@ -173,8 +173,8 @@ namespace WordPlane
         private void HumInput()
         {
             //if (microphoneInput.Level > microphoneInput.NoiseIntensity)
-            if (microphoneInput.Syllable)
-                InputEvent();
+            //if (microphoneInput.Syllable)
+                //InputEvent();
         }
 
         private void NewBestDistance(int distance)
