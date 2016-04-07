@@ -201,21 +201,24 @@ namespace MicTools
 
         private void Algorithm(float[] data)
         {
+           
             samples = data.Length;
             float sumIntensity = 0;
             if (!SinglePolaity(data)) // Here to easily take out artifacts found on my poor desktop mic
             {
                 sumIntensity = SumAbsIntensity(data);
                 level = sumIntensity / data.Length;
-                if (!syllable)
+                /*if (!syllable)
                 {
                     standardDeviation = Mathf.Sqrt(
                             (Mathf.Pow(standardDeviation, 2) * (Mathf.Min(20, windowsSoFar) - 1)
                             + Mathf.Pow(level - noiseIntensity, 2))
                         / Mathf.Min(20, windowsSoFar));
                     noiseIntensity += (sumIntensity - noiseIntensity * data.Length) / Mathf.Min(microphoneBuffer.SampleRate * 4, samplesSoFar);
-                }
+                }*/
                 float mean = SumIntensity(data) / data.Length;
+
+                //noiseIntensity = 0;
 
                 int sampleOffsetHigh;
                 int sampleOffsetLow;
@@ -227,9 +230,9 @@ namespace MicTools
                 if (normalisedPeakAutocorrelation > 0.5f) // If we're using the periodicity, check that the normalised value is high before considering it
                     DetectNuclei();
 
-                if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
-                    DetectSyllables();
-                DetectPresence();
+                //if (windowsSoFar > 20) // To stop getting stuck thinking everything is a syllable if it starts loud
+                //    DetectSyllables();
+                //DetectPresence(); ----- Not a core part of the Algorithm.
                
             }
             else
