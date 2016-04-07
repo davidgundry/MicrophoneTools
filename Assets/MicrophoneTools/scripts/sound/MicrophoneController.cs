@@ -236,7 +236,7 @@ namespace MicTools
             {
                 if ((id >= 0) && (Microphone.devices.Length > 0))
                 {
-                    microphoneDeviceName = Microphone.devices[0];
+                    microphoneDeviceName = Microphone.devices[id];
                     LogMT.Log("MicrophoneController: Using microphone: " + microphoneDeviceName);
                     microphoneDeviceSet = true;
                     SetSamplingRate();
