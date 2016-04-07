@@ -128,24 +128,6 @@ namespace MicTools
             return totalS;
         }
 
-
-        private static byte[] EncodeFloatBlockToRawAudioBytes(float[] data)
-        {
-            byte[] bytes = new byte[data.Length * 2];
-            int rescaleFactor = 32767;
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                short intData;
-                intData = (short)(data[i] * rescaleFactor);
-                byte[] byteArr = new byte[2];
-                byteArr = BitConverter.GetBytes(intData);
-                byteArr.CopyTo(bytes, i * 2);
-            }
-
-            return bytes;
-        }
-
         void Update()
         {
             if (test)
@@ -163,7 +145,6 @@ namespace MicTools
 
             Algorithm(window);
                     
-            LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(window));
             //LogMT.SendStreamValueBlock("MTaudio", window);
             LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
             LogMT.SendStreamValue("MTlvl", level);

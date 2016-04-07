@@ -62,6 +62,8 @@ namespace MicTools
                     float[] newData = new float[samplesPassed];
                     audioClip.GetData(newData, bufferPos);
 
+                    LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(newData));
+
                     if (bufferPos + samplesPassed < buffer.Length)
                         System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), samplesPassed * sizeof(float));
                     else
@@ -79,6 +81,21 @@ namespace MicTools
                 previousDSPTime = AudioSettings.dspTime;
         }
 
+        private static byte[] EncodeFloatBlockToRawAudioBytes(float[] data)
+        {
+            byte[] bytes = new byte[data.Length * 2];
+            int rescaleFactor = 32767;
 
+            for (int i = 0; i < data.Length; i++)
+            {
+                short intData;
+                intData = (short)(data[i] * rescaleFactor);
+                byte[] byteArr = new byte[2];
+                byteArr = BitConverter.GetBytes(intData);
+                byteArr.CopyTo(bytes, i * 2);
+            }
+
+            return bytes;
+        }
     }
 }
