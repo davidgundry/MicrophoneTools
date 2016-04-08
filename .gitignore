@@ -5,6 +5,7 @@
 
 /Assets/MicrophoneTools/testaudio/
 /MicrophoneTools/
+/Assets/TelemetryTools/
 /cache/
 *.meta
 build_info.txt
