@@ -34,7 +34,9 @@ using UniqueKey = System.String;
 
 namespace TelemetryTools
 {
-
+    /// <summary>
+    /// This class contains pre-defined event strings for basic system events.
+    /// </summary>
     public static class Event
     {
         public const string TelemetryStart = "TTStart";
@@ -44,6 +46,9 @@ namespace TelemetryTools
         public const string ApplicationQuit = "AppQuit";
     }
 
+    /// <summary>
+    /// This class contains pre-defined stream value keys for common system values.
+    /// </summary>
     public static class Stream
     {
         public const string FrameTime = "FT";
@@ -51,7 +56,10 @@ namespace TelemetryTools
         public const string LostData = "LD";
     }
 
-    public static class UserDataKeys
+    /// <summary>
+    /// This class contains pre-defined keys for the user properties sumbitted with a key request.
+    /// </summary>
+    public static class UserPropertyKeys
     {
         public const string RequestTime = "RequestTime";
         public const string Platform = "Platform";
@@ -63,7 +71,9 @@ namespace TelemetryTools
 
     public class Telemetry
     {
-        private static Telemetry instance;
+        /// <summary>
+        /// This provides static access to a singleton instance of Telemetry. If the singleton does not yet exists, this creates it. Most interaction with TelemetryTools is via this static accessor.
+        /// </summary>
         public static Telemetry Instance
         {
             get
@@ -73,6 +83,12 @@ namespace TelemetryTools
                 return instance;
             }
         }
+        private static Telemetry instance;
+
+        /// <summary>
+        /// Returns true if a Telemetry instance exists.
+        /// </summary>
+        public static bool Exists { get { return instance != null; } }
 
         private Milliseconds startTime = 0;
         private readonly SessionID sessionID = 0;
@@ -80,8 +96,6 @@ namespace TelemetryTools
         private FrameID frameID = 0;
 
         private const FilePath fileExtension = "telemetry";
-
-
 #if LOCALSAVEENABLED
         // Local
         private const FilePath cacheDirectory = "cache";
@@ -156,21 +170,6 @@ namespace TelemetryTools
             }
         }
 
-        public static KeyValuePair<UserDataKey, string>[] UserProperties
-        {
-            get
-            {
-                List<KeyValuePair<UserDataKey, string>> userData = new List<KeyValuePair<UserDataKey, string>>();
-                userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Platform, Application.platform.ToString()));
-                userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Version, Application.version));
-                userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.UnityVersion, Application.unityVersion));
-                userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.Genuine, Application.genuine.ToString()));
-                if (Application.isWebPlayer)
-                    userData.Add(new KeyValuePair<UserDataKey, string>(UserDataKeys.WebPlayerURL, Application.absoluteURL));
-
-                return userData.ToArray();
-            }
-        }
 
         public Telemetry(URL uploadURL = "", URL keyServer = "", URL userDataURL = "", Bytes bufferSize = defaultBufferSize, Bytes frameBufferSize = defaultFrameBufferSize, Bytes minSendingThreshold = defaultMinSendingThreshold)
         {

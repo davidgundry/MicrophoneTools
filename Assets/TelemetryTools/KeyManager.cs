@@ -59,7 +59,6 @@ namespace TelemetryTools
             }
         }
 
-
         public KeyManager(Telemetry telemetry, URL keyServer)
         {
             this.telemetry = telemetry;
@@ -87,7 +86,23 @@ namespace TelemetryTools
         {
             if (httpPostEnabled)
                 if (ConnectionLogger.Instance.RequestKeyDelay <= 0)
-                    RequestKeyIfNone(Telemetry.UserProperties);
+                    RequestKeyIfNone(UserProperties);
+        }
+
+        public static KeyValuePair<UserDataKey, string>[] UserProperties
+        {
+            get
+            {
+                List<KeyValuePair<UserDataKey, string>> userData = new List<KeyValuePair<UserDataKey, string>>();
+                userData.Add(new KeyValuePair<UserDataKey, string>(UserPropertyKeys.Platform, Application.platform.ToString()));
+                userData.Add(new KeyValuePair<UserDataKey, string>(UserPropertyKeys.Version, Application.version));
+                userData.Add(new KeyValuePair<UserDataKey, string>(UserPropertyKeys.UnityVersion, Application.unityVersion));
+                userData.Add(new KeyValuePair<UserDataKey, string>(UserPropertyKeys.Genuine, Application.genuine.ToString()));
+                if (Application.isWebPlayer)
+                    userData.Add(new KeyValuePair<UserDataKey, string>(UserPropertyKeys.WebPlayerURL, Application.absoluteURL));
+
+                return userData.ToArray();
+            }
         }
 
         public UniqueKey GetKeyByID(KeyID id)
@@ -173,7 +188,7 @@ namespace TelemetryTools
         private static WWW RequestUniqueKey(URL keyServer, KeyValuePair<string, string>[] userData, ref bool keyWWWBusy)
         {
             WWWForm form = new WWWForm();
-            form.AddField(UserDataKeys.RequestTime, System.DateTime.UtcNow.ToString("u"));
+            form.AddField(UserPropertyKeys.RequestTime, System.DateTime.UtcNow.ToString("u"));
 
             foreach (KeyValuePair<string, string> pair in userData)
                 form.AddField(pair.Key, pair.Value);
