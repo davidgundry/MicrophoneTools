@@ -44,6 +44,7 @@ namespace WordPlane
 
         void Update()
         {
+
             TelemetryTools.Telemetry.Instance.SendFrame();
             TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, Time.time);
             TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", microphoneInput.Level);
