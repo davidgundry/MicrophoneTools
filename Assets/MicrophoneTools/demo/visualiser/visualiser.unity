@@ -571,8 +571,8 @@ MonoBehaviour:
   samples: 0
   caution: 0
   syllables: 0
-  normalisedPeakAutocorrelation: 0
   test: 0
+  pitch: 0
 --- !u!224 &1357141670
 RectTransform:
   m_ObjectHideFlags: 0
@@ -649,6 +649,8 @@ MonoBehaviour:
   microphoneActive: 1
   testClip: {fileID: 0}
   sampleRate: 44100
+  channels: 0
+  audioClip: {fileID: 0}
 --- !u!169 &1357141674
 AudioLowPassFilter:
   m_ObjectHideFlags: 0
@@ -1786,46 +1788,6 @@ ParticleSystem:
     subEmitterCollision1: {fileID: 0}
     subEmitterDeath: {fileID: 0}
     subEmitterDeath1: {fileID: 0}
---- !u!1 &1869794321
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 1869794323}
-  - 114: {fileID: 1869794322}
-  m_Layer: 0
-  m_Name: Telemetry
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1869794322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1869794321}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d97a37ca61e059e46b5a756f79462417, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  showRates: 0
---- !u!4 &1869794323
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1869794321}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -.0289716721, y: 6.74767208, z: 9.89445114}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
 --- !u!1 &1966798656
 GameObject:
   m_ObjectHideFlags: 0
