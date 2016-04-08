@@ -10,7 +10,10 @@ public class CubeBehaviour : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        TelemetryTools.Telemetry.Instance.SendFrame();
-        TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, Time.time);
+        if (TelemetryTools.Telemetry.Exists)
+        {
+            TelemetryTools.Telemetry.Instance.SendFrame();
+            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, Time.time);
+        }
 	}
 }

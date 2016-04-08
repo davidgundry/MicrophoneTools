@@ -30,8 +30,6 @@ using FrameID = System.UInt32;
 using UserDataKey = System.String;
 using UniqueKey = System.String;
 
-
-
 namespace TelemetryTools
 {
     /// <summary>
