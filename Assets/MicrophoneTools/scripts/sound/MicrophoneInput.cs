@@ -24,8 +24,7 @@ namespace MicTools
         public const float deactivationMultiple = 1.5848931924611136f; // 1f; //0dB
         public const float presenceMultiple = 1f;
 
-        private const int maxWindowLengthForAutocorrelation = 1024;
-        private const int windowSize = 2048;
+        private const int windowSize = 1024;
 
         private const float npaThreshold = 0.4f;
 
@@ -73,7 +72,6 @@ namespace MicTools
                 case SoundEvent.BufferReady:
                     yin = new Yin(microphoneBuffer.SampleRate, windowSize);
                     LogMT.Log("Window Size for Algorithm: " + windowSize);
-                    LogMT.Log("Max Window Length for Autocorrelation: " + maxWindowLengthForAutocorrelation);
                     break;
             }
         }
@@ -257,34 +255,31 @@ namespace MicTools
         {
             float highest = 0;
 
-            //int windowLength = window.Length;
-            int windowLength = Math.Min(window.Length, maxWindowLengthForAutocorrelation);
-
             float[] gammaA = new float[sampleOffsetHigh-sampleOffsetLow+1];
 
             float sumZero = 0;
-            for (int t = 0; t < windowLength - 0; t++)
+            for (int t = 0; t < window.Length - 0; t++)
                 sumZero += window[t + 0] * window[t];
 
-            float gammaZero = sumZero / windowLength;
+            float gammaZero = sumZero / window.Length;
 
             for (int h = sampleOffsetHigh; h >= sampleOffsetLow; h--)
             {
                 float sum = 0;
-                for (int t = 0; t < windowLength - h; t++)
+                for (int t = 0; t < window.Length - h; t++)
                     sum += (window[t + h] - mean) * (window[t] - mean);
 
-                float gamma = (sum / windowLength) / (windowLength - h);
+                float gamma = (sum / window.Length) / (window.Length - h);
                 if (gamma > highest)
                     highest = gamma;
 
-                float norm = highest / (gammaZero / windowLength);
+                float norm = highest / (gammaZero / window.Length);
                 gammaA[h - sampleOffsetLow] = norm;
             }
 
             // Here we normalise the peak value so it is between 0 and 1
 
-            float normalised = highest / (gammaZero / windowLength);
+            float normalised = highest / (gammaZero / window.Length);
 
             LogMT.SendStreamValue("MTsoL", sampleOffsetLow);
             LogMT.SendStreamValue("MTsoH", sampleOffsetHigh);
