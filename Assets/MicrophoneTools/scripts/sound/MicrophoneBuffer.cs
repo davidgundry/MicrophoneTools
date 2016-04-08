@@ -33,7 +33,6 @@ namespace MicTools
         private double deltaDSPTime;
 
         private bool waitingForAudio = true;
-        private const float startDelay = 0.1f;
 
         void OnSoundEvent(SoundEvent soundEvent)
         {
@@ -44,7 +43,7 @@ namespace MicTools
                     audioClip = GetComponent<MicrophoneController>().audioClip;
                     buffer = new float[audioClip.samples];//*audioClip.channels];
                     sampleRate = audioClip.frequency;
-                    gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
+                    waitingForAudio = true;
                     break;
                 case SoundEvent.AudioEnd:
                     audioPlaying = false;
@@ -59,37 +58,41 @@ namespace MicTools
                 deltaDSPTime = (AudioSettings.dspTime - previousDSPTime);
                 previousDSPTime = AudioSettings.dspTime;
 
-                int samplesPassed = (int) Math.Ceiling(deltaDSPTime*audioClip.frequency);
-                if (samplesPassed > 0)
-                {
-                    float[] newData = new float[samplesPassed];
-                    audioClip.GetData(newData, bufferPos);
-
-                    LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(newData));
-
-                    if (bufferPos + samplesPassed < buffer.Length)
-                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), samplesPassed * sizeof(float));
-                    else
-                    {
-                        int firstSamples = buffer.Length-bufferPos;
-                        int secondSamples = samplesPassed - firstSamples;
-                        System.Buffer.BlockCopy(newData, 0,                            buffer, bufferPos * sizeof(float), firstSamples * sizeof(float));
-                        System.Buffer.BlockCopy(newData, firstSamples * sizeof(float), buffer, 0,                         secondSamples * sizeof(float));
-                    }
-
-                    bufferPos = (bufferPos + samplesPassed) % buffer.Length;
-                }
-
                 if (waitingForAudio)
                 {
-                    for (int i = buffer.Length-1; i >= 0; i--) // going backwards find end
+                    float[] newData = new float[audioClip.samples];
+                    audioClip.GetData(newData, 1);
+                    for (int i = newData.Length - 1; i >= 0; i--) // going backwards find end
                     //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
-                        if (buffer[i] != 0)
+                        if (newData[i] != 0)
                         {
-                            bufferPos = (int) (i-sampleRate*startDelay)%buffer.Length;
                             waitingForAudio = false;
+                            gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
                             break;
                         }
+                }
+                else
+                {
+                    int samplesPassed = (int)Math.Ceiling(deltaDSPTime * audioClip.frequency);
+                    if (samplesPassed > 0)
+                    {
+                        float[] newData = new float[samplesPassed];
+                        audioClip.GetData(newData, bufferPos);
+
+                        LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(newData));
+
+                        if (bufferPos + samplesPassed < buffer.Length)
+                            System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), samplesPassed * sizeof(float));
+                        else
+                        {
+                            int firstSamples = buffer.Length - bufferPos;
+                            int secondSamples = samplesPassed - firstSamples;
+                            System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), firstSamples * sizeof(float));
+                            System.Buffer.BlockCopy(newData, firstSamples * sizeof(float), buffer, 0, secondSamples * sizeof(float));
+                        }
+
+                        bufferPos = (bufferPos + samplesPassed) % buffer.Length;
+                    }
                 }
             }
             else
