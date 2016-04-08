@@ -32,6 +32,8 @@ namespace MicTools
         private double previousDSPTime;
         private double deltaDSPTime;
 
+        private bool waitingForAudio = true;
+
         void OnSoundEvent(SoundEvent soundEvent)
         {
             switch (soundEvent)
@@ -53,6 +55,19 @@ namespace MicTools
         {
             if (audioPlaying)
             {
+                if (waitingForAudio)
+                {
+                    for (int i = 0; i < buffer.Length; i++)
+                        if (buffer[i] != 0)
+                        {
+                            bufferPos = i;
+                            Debug.Log("Found at: " + i);
+                            waitingForAudio = false;
+                            break;
+                        }
+                }
+
+
                 deltaDSPTime = (AudioSettings.dspTime - previousDSPTime);
                 previousDSPTime = AudioSettings.dspTime;
 
