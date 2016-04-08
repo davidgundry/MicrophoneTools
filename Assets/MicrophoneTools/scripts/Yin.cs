@@ -16,7 +16,7 @@ namespace MicTools
             bufferSize = yinBufferSize;
             sampleRate = yinSampleRate;
             halfBufferSize = bufferSize / 2;
-            threshold = 0.8; //was 0.15
+            threshold = 0.6; //was 0.15
             probability = 0.0f;
             //initialize array and set it to zero
             yinBuffer = new float[halfBufferSize];

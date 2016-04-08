@@ -25,7 +25,7 @@ namespace MicTools
         public const float presenceMultiple = 1f;
 
         private const int maxWindowLengthForAutocorrelation = 1024;
-        private const int windowSize = 1024;
+        private const int windowSize = 2048;
 
         private const float npaThreshold = 0.4f;
 

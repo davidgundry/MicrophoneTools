@@ -66,6 +66,7 @@ namespace MicTools
                     //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
                         if (newData[i] != 0)
                         {
+                            bufferPos = 0;
                             waitingForAudio = false;
                             gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
                             break;
