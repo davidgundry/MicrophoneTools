@@ -1840,46 +1840,6 @@ MonoBehaviour:
   target: {fileID: 975968658}
   offset: {x: 2, y: 0, z: -4}
   minY: 1
---- !u!1 &1763609535
-GameObject:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  serializedVersion: 4
-  m_Component:
-  - 4: {fileID: 1763609537}
-  - 114: {fileID: 1763609536}
-  m_Layer: 0
-  m_Name: TelemetryMonitor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!114 &1763609536
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1763609535}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15d1d6d053f0b5c44b3a6a800446e3a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  showLogging: 0
---- !u!4 &1763609537
-Transform:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1763609535}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -.0289716721, y: 6.74767208, z: 9.89445114}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 6
 --- !u!1 &1840070804
 GameObject:
   m_ObjectHideFlags: 0
