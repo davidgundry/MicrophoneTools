@@ -33,6 +33,7 @@ namespace MicTools
         private double deltaDSPTime;
 
         private bool waitingForAudio = true;
+        private const float startDelay = 0.1f;
 
         void OnSoundEvent(SoundEvent soundEvent)
         {
@@ -41,7 +42,7 @@ namespace MicTools
                 case SoundEvent.AudioStart:
                     audioPlaying = true;
                     audioClip = GetComponent<MicrophoneController>().audioClip;
-                    buffer = new float[audioClip.samples*audioClip.channels];
+                    buffer = new float[audioClip.samples];//*audioClip.channels];
                     sampleRate = audioClip.frequency;
                     gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
                     break;
@@ -55,19 +56,6 @@ namespace MicTools
         {
             if (audioPlaying)
             {
-                if (waitingForAudio)
-                {
-                    for (int i = 0; i < buffer.Length; i++)
-                        if (buffer[i] != 0)
-                        {
-                            bufferPos = i;
-                            Debug.Log("Found at: " + i);
-                            waitingForAudio = false;
-                            break;
-                        }
-                }
-
-
                 deltaDSPTime = (AudioSettings.dspTime - previousDSPTime);
                 previousDSPTime = AudioSettings.dspTime;
 
@@ -90,6 +78,18 @@ namespace MicTools
                     }
 
                     bufferPos = (bufferPos + samplesPassed) % buffer.Length;
+                }
+
+                if (waitingForAudio)
+                {
+                    for (int i = buffer.Length-1; i >= 0; i--) // going backwards find end
+                    //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
+                        if (buffer[i] != 0)
+                        {
+                            bufferPos = (int) (i-sampleRate*startDelay)%buffer.Length;
+                            waitingForAudio = false;
+                            break;
+                        }
                 }
             }
             else
