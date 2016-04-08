@@ -147,7 +147,6 @@ namespace MicTools
 
             Algorithm(window);
                     
-            //LogMT.SendStreamValueBlock("MTaudio", window);
             LogMT.SendStreamValue("MTnpa", normalisedPeakAutocorrelation);
             LogMT.SendStreamValue("MTlvl", level);
             LogMT.SendStreamValue("MTnoi", noiseIntensity);
