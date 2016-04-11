@@ -42,7 +42,7 @@ namespace MicTools
             {
                 visualiserPoints[visualiserPosition] = microphoneInput.Level;
 
-                float noiseIntensity = microphoneInput.NoiseIntensity;
+                //float noiseIntensity = microphoneInput.NoiseIntensity;
 
                 float highest = 0;
                 Color color = Color.white;

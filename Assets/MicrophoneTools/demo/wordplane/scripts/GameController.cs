@@ -175,7 +175,7 @@ namespace WordPlane
 
         private void HumInput()
         {
-            if (microphoneInput.NormalisedPeakAutocorrelation > MicrophoneInput.npaThreshold)
+            if (microphoneInput.NormalisedPeakAutocorrelation > SyllableDetectionAlgorithm.npaThreshold)
                 InputEvent();
         }
 

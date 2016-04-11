@@ -26,7 +26,7 @@ namespace MicTools
             testClip = (AudioClip)EditorGUILayout.ObjectField(testClip, typeof(AudioClip), false);
             if (GUILayout.Button("Test"))
             {
-                Debug.Log("Test Result: Syllables: " + microphoneInput.RunTest(testClip));
+                Debug.Log("Test Result: Syllables: " + MicrophoneInput.RunTest(testClip));
             }
             GUILayout.EndHorizontal();
 

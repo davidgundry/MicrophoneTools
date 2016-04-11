@@ -11,26 +11,25 @@ namespace MicTools
     [RequireComponent(typeof(GLDebug))]
     [RequireComponent(typeof(Camera))]
     [AddComponentMenu("MicrophoneTools/VowelVisualiser")]
-    public class VowelVisualiser : MonoBehaviour
+    public class SpectrumVisualiser : MonoBehaviour
     {
 
-        private Text vowelText;
-        private FFTPitchDetector formantFinder;
+        //private Text vowelText;
+        private FFTPitchDetector fftPitchDetector;
         //private VowelFinder vowelFinder;
-        private Canvas canvas;
+        //private Canvas canvas;
 
         private float halfCameraHeight;
         private float halfCameraWidth;
 
-        private const int activationThreshold = 20;
+        //private const int activationThreshold = 20;
 
-        private float magnification = 10;
-
+        private const float magnification = 10;
         private const int zPos = 10;
 
         void Start()
         {
-            formantFinder = GetComponent<FFTPitchDetector>();
+            fftPitchDetector = GetComponent<FFTPitchDetector>();
             //vowelFinder = GetComponent<VowelFinder>();
             halfCameraHeight = this.GetComponent<Camera>().orthographicSize;
             halfCameraWidth = this.GetComponent<Camera>().aspect * halfCameraHeight;
@@ -43,7 +42,7 @@ namespace MicTools
 
         void Update()
         {
-            float[] spectrum = formantFinder.Spectrum;
+            float[] spectrum = fftPitchDetector.Spectrum;
             //int formant = 0;
             Color color = Color.red;
             for (int i = 1; i < spectrum.Length - 1; i++)

@@ -91,7 +91,7 @@ namespace MicTools
                             int firstSamples = buffer.Length - bufferPos;
                             int secondSamples = samplesPassed - firstSamples;
                             System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), firstSamples * sizeof(float));
-                            System.Buffer.BlockCopy(newData, firstSamples * sizeof(float), buffer, 0, secondSamples * sizeof(float));
+                            System.Array.Copy(newData, firstSamples, buffer, 0, secondSamples);
                         }
 
                         bufferPos = (bufferPos + samplesPassed) % buffer.Length;
