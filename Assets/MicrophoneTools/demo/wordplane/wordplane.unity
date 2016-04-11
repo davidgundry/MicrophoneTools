@@ -1507,12 +1507,12 @@ GameObject:
   m_Component:
   - 4: {fileID: 1523735795}
   - 114: {fileID: 1523735794}
-  - 114: {fileID: 1523735796}
   - 114: {fileID: 1523735801}
-  - 114: {fileID: 1523735802}
   - 114: {fileID: 1523735798}
   - 20: {fileID: 1523735799}
   - 114: {fileID: 1523735803}
+  - 114: {fileID: 1523735797}
+  - 114: {fileID: 1523735796}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -1558,12 +1558,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 1523735793}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a283c4394a569654da3dc8d11d60371e, type: 3}
+  m_Script: {fileID: 11500000, guid: 07826fb95f18e604fb9f3f49c38afb38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 1
+--- !u!114 &1523735797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1523735793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  microphoneActive: 0
   testClip: {fileID: 0}
-  sampleRate: 8000
+  sampleRate: 44100
   channels: 0
   audioClip: {fileID: 0}
 --- !u!114 &1523735798
@@ -1622,22 +1633,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  samples: 0
-  caution: 1
-  syllables: 0
-  test: 0
   pitch: 0
---- !u!114 &1523735802
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1523735793}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cbcf8b546a8f5e4e9558aef27693012, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1523735803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1649,6 +1645,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  matZOn: {fileID: 0}
+  matZOff: {fileID: 0}
   toggleKey: 118
   displayLines: 1
   displayGizmos: 1
