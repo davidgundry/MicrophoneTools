@@ -37,9 +37,6 @@ RenderSettings:
   m_ReflectionIntensity: 0
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
---- !u!127 &3
-LevelGameManager:
-  m_ObjectHideFlags: 0
 --- !u!157 &4
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -68,6 +65,7 @@ LightmapSettings:
     m_TextureCompression: 1
     m_FinalGather: 0
     m_FinalGatherRayCount: 1024
+    m_ReflectionCompression: 2
   m_LightmapSnapshot: {fileID: 0}
   m_RuntimeCPUUsage: 25
 --- !u!196 &5
@@ -375,10 +373,12 @@ Camera:
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
+  m_TargetEye: 3
   m_HDR: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: .0219999999
+  m_StereoMirrorMode: 0
 --- !u!4 &272687875
 Transform:
   m_ObjectHideFlags: 0
@@ -472,14 +472,13 @@ GameObject:
   serializedVersion: 4
   m_Component:
   - 4: {fileID: 331132040}
-  - 82: {fileID: 331132039}
-  - 114: {fileID: 331132038}
-  - 114: {fileID: 331132037}
-  - 114: {fileID: 331132036}
   - 20: {fileID: 331132035}
+  - 114: {fileID: 331132041}
   - 114: {fileID: 331132034}
   - 114: {fileID: 331132033}
-  - 114: {fileID: 331132041}
+  - 114: {fileID: 331132036}
+  - 114: {fileID: 331132038}
+  - 114: {fileID: 331132037}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -540,10 +539,12 @@ Camera:
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
+  m_TargetEye: 3
   m_HDR: 0
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: .0219999999
+  m_StereoMirrorMode: 0
 --- !u!114 &331132036
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -555,9 +556,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  samples: 0
+  testClip: {fileID: 8300000, guid: 0e269be7bde9b9243adbe11352637921, type: 3}
+  caution: 0
   syllables: 0
-  periodicity: 0
-  test: 0
+  test: 1
+  pitch: 0
 --- !u!114 &331132037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -566,7 +570,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 331132032}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cbcf8b546a8f5e4e9558aef27693012, type: 3}
+  m_Script: {fileID: 11500000, guid: 07826fb95f18e604fb9f3f49c38afb38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!114 &331132038
@@ -577,81 +581,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 331132032}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a283c4394a569654da3dc8d11d60371e, type: 3}
+  m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 1
+  microphoneActive: 0
   testClip: {fileID: 0}
   sampleRate: 44100
---- !u!82 &331132039
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 331132032}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    - time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
+  channels: 0
+  audioClip: {fileID: 0}
 --- !u!4 &331132040
 Transform:
   m_ObjectHideFlags: 0
@@ -895,7 +832,7 @@ MonoBehaviour:
   m_Script: {fileID: 1997211142, guid: f5f67c52d1564df4a8936ccd202a3bd8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AllowActivationOnStandalone: 0
+  m_ForceModuleActive: 0
 --- !u!114 &805015914
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -912,7 +849,8 @@ MonoBehaviour:
   m_SubmitButton: Submit
   m_CancelButton: Cancel
   m_InputActionsPerSecond: 10
-  m_AllowActivationOnMobileDevice: 0
+  m_RepeatDelay: .5
+  m_ForceModuleActive: 0
 --- !u!114 &805015915
 MonoBehaviour:
   m_ObjectHideFlags: 0
