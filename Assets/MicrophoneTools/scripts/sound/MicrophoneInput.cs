@@ -26,7 +26,7 @@ namespace MicTools
 
         private const int windowSize = 1024;
 
-        private const float npaThreshold = 0.4f;
+        public const float npaThreshold = 0.4f;
 
         private float peak = 0f;
         private float dip = 0f;
@@ -62,7 +62,6 @@ namespace MicTools
         void Start()
         {
             microphoneBuffer = GetComponent<MicrophoneBuffer>();
-        
         }
 
         public void OnSoundEvent(SoundEvent e)
@@ -137,7 +136,7 @@ namespace MicTools
 
         void Update()
         {
-            float[] window = GetMostRecentSamples(windowSize);
+            float[] window = microphoneBuffer.GetMostRecentSamples(windowSize);
             samplesSoFar += windowSize;
             windowsSoFar++;
 
@@ -290,26 +289,6 @@ namespace MicTools
             return normalised;
         }
 
-        private float[] GetMostRecentSamples(int count)
-        {
-            float[] newSamples = new float[count];
-
-            if (microphoneBuffer.Buffer.Length > 0)
-            {
-                if (microphoneBuffer.BufferPos - count >= 0)
-                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, (microphoneBuffer.BufferPos - count) * sizeof(float), newSamples, 0, count * sizeof(float));
-                else
-                {
-                    int headSamples = microphoneBuffer.BufferPos;
-                    int tailSamples = count - microphoneBuffer.BufferPos;
-                    int tailStart = microphoneBuffer.Buffer.Length - tailSamples;
-                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, 0, newSamples, tailSamples*sizeof(float), headSamples*sizeof(float));
-                    System.Buffer.BlockCopy(microphoneBuffer.Buffer, tailStart*sizeof(float), newSamples, 0,   tailSamples*sizeof(float));
-                    
-                }
-            }
-            return newSamples;
-        }
 
         /*private int NewSamples
         {

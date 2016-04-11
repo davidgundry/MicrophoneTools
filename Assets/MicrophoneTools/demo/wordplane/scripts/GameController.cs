@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using WordPlane;
+using MicTools;
 
 namespace WordPlane
 {
@@ -44,12 +45,14 @@ namespace WordPlane
 
         void Update()
         {
-
-            TelemetryTools.Telemetry.Instance.SendFrame();
-            TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, Time.time);
-            TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", microphoneInput.Level);
-            TelemetryTools.Telemetry.Instance.SendStreamValue("x", player.position.x);
-            TelemetryTools.Telemetry.Instance.SendStreamValue("y", player.position.y);
+            if (TelemetryTools.Telemetry.Exists)
+            {
+                TelemetryTools.Telemetry.Instance.SendFrame();
+                TelemetryTools.Telemetry.Instance.SendStreamValue(TelemetryTools.Stream.FrameTime, Time.time);
+                TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", microphoneInput.Level);
+                TelemetryTools.Telemetry.Instance.SendStreamValue("x", player.position.x);
+                TelemetryTools.Telemetry.Instance.SendStreamValue("y", player.position.y);
+            }
 
             if ((playerBehaviour.PlayerState == PlayerState.Flying) || (playerBehaviour.PlayerState == PlayerState.TakingOff) || (playerBehaviour.PlayerState == PlayerState.Landing))
             {
@@ -58,7 +61,6 @@ namespace WordPlane
             }
 
             speedText.text = (int)((playerBehaviour.Speed() * 5 * 60 * 60) / 1000) + " km/h";
-            //speedText.text = ""+microphoneInput.normalisedPeakAutocorrelation;
 
             if (pointsText.transform.localScale.x > 0.75f)
             {
@@ -173,9 +175,8 @@ namespace WordPlane
 
         private void HumInput()
         {
-            //if (microphoneInput.Level > microphoneInput.NoiseIntensity)
-            //if (microphoneInput.Syllable)
-                //InputEvent();
+            if (microphoneInput.NormalisedPeakAutocorrelation > MicrophoneInput.npaThreshold)
+                InputEvent();
         }
 
         private void NewBestDistance(int distance)

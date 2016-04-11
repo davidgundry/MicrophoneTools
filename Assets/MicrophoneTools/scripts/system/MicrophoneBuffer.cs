@@ -34,6 +34,8 @@ namespace MicTools
 
         private bool waitingForAudio = true;
 
+        public int Channels { get { if (audioPlaying) return audioClip.channels; else return 0; } }
+
         void OnSoundEvent(SoundEvent soundEvent)
         {
             switch (soundEvent)
@@ -63,7 +65,7 @@ namespace MicTools
                     float[] newData = new float[audioClip.samples];
                     audioClip.GetData(newData, 1);
                     for (int i = newData.Length - 1; i >= 0; i--) // going backwards find end
-                    //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
+                        //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
                         if (newData[i] != 0)
                         {
                             bufferPos = 0;
@@ -115,6 +117,28 @@ namespace MicTools
             }
 
             return bytes;
+        }
+
+
+        public float[] GetMostRecentSamples(int count)
+        {
+            float[] newSamples = new float[count];
+
+            if (buffer.Length > 0)
+            {
+                if (bufferPos - count >= 0)
+                    System.Buffer.BlockCopy(buffer, (bufferPos - count) * sizeof(float), newSamples, 0, count * sizeof(float));
+                else
+                {
+                    int headSamples = bufferPos;
+                    int tailSamples = count - bufferPos;
+                    int tailStart = buffer.Length - tailSamples;
+                    System.Buffer.BlockCopy(buffer, 0, newSamples, tailSamples * sizeof(float), headSamples * sizeof(float));
+                    System.Buffer.BlockCopy(buffer, tailStart * sizeof(float), newSamples, 0, tailSamples * sizeof(float));
+
+                }
+            }
+            return newSamples;
         }
     }
 }

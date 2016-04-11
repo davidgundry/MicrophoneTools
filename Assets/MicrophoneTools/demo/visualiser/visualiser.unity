@@ -396,11 +396,12 @@ GameObject:
   - 169: {fileID: 1357141674}
   - 20: {fileID: 1357141672}
   - 82: {fileID: 1357141664}
-  - 114: {fileID: 1357141673}
-  - 114: {fileID: 1357141671}
   - 114: {fileID: 1357141669}
   - 114: {fileID: 1357141668}
   - 114: {fileID: 1357141663}
+  - 114: {fileID: 1357141673}
+  - 114: {fileID: 1357141671}
+  - 114: {fileID: 1357141675}
   m_Layer: 0
   m_Name: Microphone
   m_TagString: Untagged
@@ -554,6 +555,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  matZOn: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
+  matZOff: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
   toggleKey: 0
   displayLines: 1
   displayGizmos: 1
@@ -568,10 +571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  samples: 0
-  caution: 0
   syllables: 0
-  test: 0
   pitch: 0
 --- !u!224 &1357141670
 RectTransform:
@@ -598,7 +598,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1357141662}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7cbcf8b546a8f5e4e9558aef27693012, type: 3}
+  m_Script: {fileID: 11500000, guid: 07826fb95f18e604fb9f3f49c38afb38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!20 &1357141672
@@ -643,10 +643,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1357141662}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a283c4394a569654da3dc8d11d60371e, type: 3}
+  m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 1
+  microphoneActive: 0
   testClip: {fileID: 0}
   sampleRate: 44100
   channels: 0
@@ -670,6 +670,23 @@ AudioLowPassFilter:
       tangentMode: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
+--- !u!114 &1357141675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1357141662}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 63522cf2347aacb4382df951c5531d0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  noiseLevel: 1
+  f1: 0
+  f2: 0
+  f1freq: 0
+  f2freq: 0
+  channel: 0
 --- !u!1 &1437336612
 GameObject:
   m_ObjectHideFlags: 0

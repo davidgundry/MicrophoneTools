@@ -508,6 +508,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  matZOn: {fileID: 2100000, guid: 6f1c46bfb7e8ebe4aab472c2ab12af25, type: 2}
+  matZOff: {fileID: 2100000, guid: 6f1c46bfb7e8ebe4aab472c2ab12af25, type: 2}
   toggleKey: 0
   displayLines: 1
   displayGizmos: 1
@@ -556,11 +558,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  samples: 0
-  testClip: {fileID: 8300000, guid: 0e269be7bde9b9243adbe11352637921, type: 3}
-  caution: 0
   syllables: 0
-  test: 1
   pitch: 0
 --- !u!114 &331132037
 MonoBehaviour:
@@ -584,7 +582,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 0
+  microphoneActive: 1
   testClip: {fileID: 0}
   sampleRate: 44100
   channels: 0
