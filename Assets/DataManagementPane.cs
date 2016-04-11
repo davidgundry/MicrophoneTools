@@ -53,10 +53,10 @@ namespace TelemetryTools
             sb.Append(TelemetryTools.Telemetry.Instance.UserDataFiles.ToString());
             sb.Append("\nKeys Used ");
             sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.NumberOfUsedKeys.ToString());
-            sb.Append("\nKeys Fetched ");
-            sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.NumberOfKeys.ToString());
-            for (int i = 0; i < TelemetryTools.Telemetry.Instance.KeyManager.Keys.Length; i++)
-                sb.Append("\n" + i + ":" + TelemetryTools.Telemetry.Instance.KeyManager.Keys[i]);
+            //sb.Append("\nKeys Fetched ");
+            //sb.Append(TelemetryTools.Telemetry.Instance.KeyManager.NumberOfKeys.ToString());
+            //for (int i = 0; i < TelemetryTools.Telemetry.Instance.KeyManager.Keys.Length; i++)
+            //    sb.Append("\n" + i + ":" + TelemetryTools.Telemetry.Instance.KeyManager.Keys[i]);
 
             sb.Append("\nUpload URL ");
             sb.Append(TelemetryTools.Telemetry.Instance.UploadURL);
