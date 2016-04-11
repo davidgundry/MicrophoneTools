@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using MicTools;
 using System;
 
+
 namespace MicTools
 {
+    /* Much of the interacting with FFT code has been adapted from http://forum.unity3d.com/threads/fft-how-to.253192/*/
+
     [RequireComponent(typeof(MicrophoneBuffer))]
     [AddComponentMenu("MicrophoneTools/FormantFinder")]
-    public class FormantFinder : MonoBehaviour
+    public class FFTPitchDetector : MonoBehaviour
     {
         private MicrophoneBuffer microphoneBuffer;
 
@@ -20,10 +23,10 @@ namespace MicTools
                 return spectrum;
             }
         }
-        private const int sampleWindow = 128;
+        /*private const int sampleWindow = 128;
         private static int spectrumSize = 8192;
 
-        private const int activationThreshold = 20;
+        private const int activationThreshold = 1;
 
         private int windowsSoFar;
         public float noiseLevel = 1f;
@@ -33,9 +36,11 @@ namespace MicTools
             {
                 return noiseLevel;
             }
-        }
+        }*/
 
-        private FormantRecord[] formants;
+        public float f0;
+
+        /*private FormantRecord[] formants;
         public FormantRecord[] Formants
         {
             get
@@ -47,9 +52,9 @@ namespace MicTools
         public int f1;
         public int f2;
         public float f1freq;
-        public float f2freq;
+        public float f2freq;*/
 
-        SpeedTest.FFT2 fft;
+        FFT2 fft;
         private const int windowSize = 1024*4;
 
         public int channel = 0; // the channel to analyze
@@ -65,22 +70,10 @@ namespace MicTools
             }
         }
 
-        // FFT Arrays
         private float[] arrRe;
         private float[] arrI;
-
-
-        // Windowing
         private float[] window;
-
-        //GZComment: Changed this to private, camelCased
-        private float[] fftOutput;
-
-        private float[] threadSafeOutput;
-
         private bool _doFFT; // set to true when all is initialised. That way, no need for an expensive try catch.
-
-        private object _lockObject = new object(); //locking token
 
         // Init
         void Awake()
@@ -91,9 +84,9 @@ namespace MicTools
             arrI = new float[windowSize];
             window = new float[windowSize];
             window = Hanning(window);
-            fftOutput = new float[windowSize / 2];
+            spectrum = new float[windowSize / 2];
 
-            fft = new SpeedTest.FFT2();
+            fft = new FFT2();
             uint logN = (uint)Math.Log(windowSize, 2);
             fft.init(logN);
 
@@ -110,7 +103,7 @@ namespace MicTools
             int j = 0;
             for (int i = channel; i < data.Length; i += channels)
             {
-                arrRe[j] = data[i]; //Assumes buffer is already allocated
+                arrRe[j] = data[i];
                 j++;
             }
 
@@ -118,10 +111,8 @@ namespace MicTools
             for (int i = 0; i < arrRe.Length; i++)
                 arrRe[i] *= window[i];
 
-            // Clear array, GZComment: don't allocate new, but clear!
             System.Array.Clear(arrI, 0, windowSize);
 
-            // run the fft
             fft.run(arrRe, arrI);
 
             // Compute magnitude, in place
@@ -129,30 +120,19 @@ namespace MicTools
             for (int i = 0; i < windowSize / 2; i++)
                 arrRe[i] = Mathf.Sqrt(arrRe[i] * arrRe[i] + arrI[i] * arrI[i]);
 
-            // We only lock the final copy, so that if the main thread requests
-            // spectrum data, it at worst will wait the time it takes to copy, not
-            // the time it takes to de-interleave + window + fft + compute mags
-            lock (_lockObject)
-            {
-                System.Array.Copy(arrRe, fftOutput, windowSize / 2);
-            }
+            System.Array.Copy(arrRe, spectrum, windowSize / 2);
         }
 
         public void GetSpectrumDataSynched(float[] data)
         {
             if (data.Length < windowSize / 2)
             {
-                Debug.LogWarning("provided array length should be at least " + (windowSize / 2).ToString());
+                Debug.LogWarning("Provided array length should be at least " + (windowSize / 2).ToString());
                 return;
             }
-
-            lock (_lockObject)
-            {
-                System.Array.Copy(fftOutput, data, windowSize / 2); //No need to copy the mirrored part
-            }
+            System.Array.Copy(spectrum, data, windowSize / 2); //No need to copy the mirrored part
         }
 
-        // Windowing
         private float[] Hanning(float[] input)
         {
             for (int i = 0; i < input.Length; i++)
@@ -166,21 +146,20 @@ namespace MicTools
         {
             float[] window = microphoneBuffer.GetMostRecentSamples(windowSize);
             DoFFT(window, 1);//microphoneBuffer.Channels);
-            spectrum = fftOutput;
-            windowsSoFar++;
+            //windowsSoFar++;
 
-            f1freq = IndexToFrequency(HighestPoint(spectrum));
+            f0 = IndexToFrequency(HighestPoint(spectrum));
 
 
-            float mean = MicrophoneInput.SumIntensity(spectrum) / spectrum.Length;
+            /*float mean = 0; MicrophoneInput.SumIntensity(spectrum) / spectrum.Length;
             noiseLevel += (mean - noiseLevel) / windowsSoFar;
             formants = PeakPicking(spectrum, 0);
 
-            if (formants.Length > 0)
+            if (formants.Length > 1)
             {
-                f1 = formants[0].Peak;
-                if (formants.Length > 1)
-                    f2 = formants[1].Peak;
+                f1 = formants[1].Peak;
+                if (formants.Length > 2)
+                    f2 = formants[2].Peak;
                 else
                     f2 = 0;
             }
@@ -189,12 +168,12 @@ namespace MicTools
                 f1 = 0;
                 f2 = 0;
             }
-            //f1freq = IndexToFrequency(f1);
-            f2freq = IndexToFrequency(f2);
+            f1freq = IndexToFrequency(f1);
+            f2freq = IndexToFrequency(f2);*/
 
         }
 
-        private FormantRecord[] PeakPicking(float[] data, float noiseLevel)
+        /*private FormantRecord[] PeakPicking(float[] data, float noiseLevel)
         {
             List<FormantRecord> formants = new List<FormantRecord>();
 
@@ -205,7 +184,7 @@ namespace MicTools
 
             bool inPeak = false;
 
-            for (int i = 10; i < data.Length; i++)
+            for (int i = 5; i < data.Length; i++)
             {
                 if (!inPeak)
                 {
@@ -236,21 +215,21 @@ namespace MicTools
             }
 
             return formants.ToArray();
-        }
+        }*/
 
         private static int HighestPoint(float[] data)
         {
-            int f1 = 0;
+            int index = 0;
             float highest = 0;
             for (int i = 0; i < data.Length; i++)
             {
                 if (data[i] > highest)
                 {
-                    f1 = i;
+                    index = i;
                     highest = data[i];
                 }
             }
-            return f1;
+            return index;
         }
 
         public static float IndexToFrequency(int index)
@@ -258,18 +237,18 @@ namespace MicTools
             return index * 44100 / windowSize;
         }
 
-        private float FrequencyLevel(float frequency)
+        private static float FrequencyLevel(float[] spectrum, float frequency)
         {
             int index = (int)Mathf.Round(((1 / 48000) * windowSize * 2) * frequency);
             return spectrum[index];
         }
 
-        private int FrequencyToIndex(float frequency)
+        private static int FrequencyToIndex(float frequency)
         {
             return (int)Mathf.Round(((1 / 48000) * windowSize * 2) * frequency);
         }
 
-        private float SumSpectrumArea(float low, float high)
+        private static float SumSpectrumArea(float[] spectrum, float low, float high)
         {
             int min = FrequencyToIndex(low);
             int max = spectrum.Length - 1;

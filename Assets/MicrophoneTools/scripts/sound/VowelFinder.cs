@@ -5,12 +5,12 @@ using MicTools;
 namespace MicTools
 {
 
-    [RequireComponent(typeof(FormantFinder))]
+    [RequireComponent(typeof(FFTPitchDetector))]
     [AddComponentMenu("MicrophoneTools/VowelFinder")]
     public class VowelFinder : MonoBehaviour
     {
 
-        private FormantFinder formantFinder;
+        private FFTPitchDetector formantFinder;
         private readonly VowelRecord[] vowels;
 
         public string vowel;
@@ -39,13 +39,13 @@ namespace MicTools
         // Use this for initialization
         void Start()
         {
-            formantFinder = GetComponent<FormantFinder>();
+            formantFinder = GetComponent<FFTPitchDetector>();
         }
 
         // Update is called once per frame
         void Update()
         {
-            FormantRecord[] formants = formantFinder.Formants;
+            /*FormantRecord[] formants = formantFinder.Formants;
             if (formants.Length >= 3)
             {
                 int lowestIndex = 0;
@@ -62,7 +62,7 @@ namespace MicTools
                 vowel = vowels[lowestIndex].ToString();
                 //if (lowestValue > 200)
                 //    vowel = "";
-            }
+            }*/
 
 
         }

@@ -395,13 +395,13 @@ GameObject:
   - 114: {fileID: 1357141665}
   - 169: {fileID: 1357141674}
   - 20: {fileID: 1357141672}
-  - 82: {fileID: 1357141664}
   - 114: {fileID: 1357141669}
   - 114: {fileID: 1357141668}
   - 114: {fileID: 1357141663}
   - 114: {fileID: 1357141673}
   - 114: {fileID: 1357141671}
   - 114: {fileID: 1357141675}
+  - 114: {fileID: 1357141664}
   m_Layer: 0
   m_Name: Microphone
   m_TagString: Untagged
@@ -420,76 +420,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17c621b45b981624bbfa9c609adebed5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!82 &1357141664
-AudioSource:
+--- !u!114 &1357141664
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1357141662}
   m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    - time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-    m_PreInfinity: 2
-    m_PostInfinity: 2
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa299cd513eaea5469b01e5679c8261d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1357141665
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -646,7 +587,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 0
+  microphoneActive: 1
   testClip: {fileID: 0}
   sampleRate: 44100
   channels: 0

@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SpeedTest
+namespace MicTools
 {
+    /* The following code has been altered to use floats instead of doubles. */
+
     /**
      * Performs an in-place complex FFT.
      *

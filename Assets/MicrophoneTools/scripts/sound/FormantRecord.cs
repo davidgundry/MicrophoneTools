@@ -39,7 +39,7 @@
         {
             get
             {
-                return FormantFinder.IndexToFrequency(peak);
+                return FFTPitchDetector.IndexToFrequency(peak);
             }
         }
     }
