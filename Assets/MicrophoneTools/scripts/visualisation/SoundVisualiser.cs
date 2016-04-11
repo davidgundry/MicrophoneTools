@@ -50,29 +50,29 @@ namespace MicTools
                 {
                     highest = Mathf.Max(highest, visualiserPoints[i]);
 
-                    if ((pointFeatures[i] & (1 << 0)) != 0)
-                        color = Color.green;
-                    else if ((pointFeatures[i] & (1 << 1)) != 0)
+                    //if ((pointFeatures[i] & (1 << 0)) != 0)
+                   //     color = Color.green;
+                    //else if ((pointFeatures[i] & (1 << 1)) != 0)
+                    //    color = Color.red;
+                    //else
                         color = Color.white;
-                    else
-                        color = Color.grey;
 
                     GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + zPos), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + zPos), color, 0, true);
 
-                    if ((pointFeatures[i] & (1 << 2)) != 0)
+                    if ((pointFeatures[i] & (1 << 2)) != 0)// Syllable Peak
                     {
                         GLDebug.DrawLine(new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification, transform.position.z + zPos), new Vector3(transform.position.x + i - halfCameraWidth, transform.position.y - halfCameraHeight + visualiserPoints[i] * magnification + 10, transform.position.z + zPos), Color.blue, 0, true);
                     }
                 }
                 magnification = 20 / highest;
 
-                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), Color.red, 0, true);
-                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + (noiseIntensity + 2 * microphoneInput.StandardDeviation) * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + (noiseIntensity + 2 * microphoneInput.StandardDeviation) * magnification, transform.position.z + zPos), Color.red, 0, true);
+                //GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.activationMultiple * magnification, transform.position.z + zPos), Color.red, 0, true);
+               // GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + (noiseIntensity + 2 * microphoneInput.StandardDeviation) * magnification, transform.position.z + zPos), new Vector3(transform.position.x + visualiserPoints.Length - halfCameraWidth, transform.position.y - halfCameraHeight + (noiseIntensity + 2 * microphoneInput.StandardDeviation) * magnification, transform.position.z + zPos), Color.red, 0, true);
 
                 //if (microphoneInput.InputDetected)
                 //    GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth + visualiserPoints.Length, transform.position.y - halfCameraHeight + noiseIntensity * MicrophoneInput.presenceMultiple * magnification, transform.position.z + zPos), Color.blue, 0, true);
 
-                GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + microphoneInput.NormalisedPeakAutocorrelation * 100, transform.position.z + zPos), Color.red, 0, true);
+                //GLDebug.DrawLine(new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight, transform.position.z + zPos), new Vector3(transform.position.x - halfCameraWidth, transform.position.y - halfCameraHeight + microphoneInput.NormalisedPeakAutocorrelation * 100, transform.position.z + zPos), Color.red, 0, true);
 
 
                 visualiserPosition++;

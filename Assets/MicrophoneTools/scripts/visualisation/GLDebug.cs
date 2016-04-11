@@ -41,8 +41,8 @@ namespace MicTools
         }
 
         private static GLDebug instance;
-        private static Material matZOn;
-        private static Material matZOff;
+        public Material matZOn;
+        public Material matZOff;
 
         public KeyCode toggleKey;
         public bool displayLines = true;
@@ -70,39 +70,8 @@ namespace MicTools
 
         void SetMaterial()
         {
-            matZOn = new Material(
-    @"Shader ""GLlineZOn"" {
-            SubShader {
-                    Pass {
-                            Blend SrcAlpha OneMinusSrcAlpha
-                            ZWrite Off
-                            Cull Off
-                            BindChannels {
-                                    Bind ""vertex"", vertex
-                                    Bind ""color"", color
-                            }
-                    }
-            }
-    }
-    ");
             matZOn.hideFlags = HideFlags.HideAndDontSave;
             matZOn.shader.hideFlags = HideFlags.HideAndDontSave;
-            matZOff = new Material(
-    @"Shader ""GLlineZOff"" {
-            SubShader {
-                    Pass {
-                            Blend SrcAlpha OneMinusSrcAlpha
-                            ZWrite Off
-                            ZTest Always
-                            Cull Off
-                            BindChannels {
-                                    Bind ""vertex"", vertex
-                                    Bind ""color"", color
-                            }
-                    }
-            }
-    }
-    ");
             matZOff.hideFlags = HideFlags.HideAndDontSave;
             matZOff.shader.hideFlags = HideFlags.HideAndDontSave;
         }
