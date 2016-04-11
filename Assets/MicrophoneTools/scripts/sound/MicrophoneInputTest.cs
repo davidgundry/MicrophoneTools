@@ -21,11 +21,14 @@ namespace MicTools
         {
             DrawDefaultInspector();
 
-            testClip = (AudioClip)EditorGUILayout.ObjectField("Test Clip", testClip, typeof(AudioClip), false);
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Test");
+            testClip = (AudioClip)EditorGUILayout.ObjectField(testClip, typeof(AudioClip), false);
             if (GUILayout.Button("Test"))
             {
                 Debug.Log("Test Result: Syllables: " + microphoneInput.RunTest(testClip));
             }
+            GUILayout.EndHorizontal();
 
             Repaint();
 
