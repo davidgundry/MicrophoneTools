@@ -1572,7 +1572,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2cd720287d2053840ba3814c0cc3e8cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  microphoneActive: 0
+  microphoneActive: 1
   testClip: {fileID: 0}
   sampleRate: 44100
   channels: 0
@@ -1645,8 +1645,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  matZOn: {fileID: 0}
-  matZOff: {fileID: 0}
+  matZOn: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
+  matZOff: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
   toggleKey: 118
   displayLines: 1
   displayGizmos: 1

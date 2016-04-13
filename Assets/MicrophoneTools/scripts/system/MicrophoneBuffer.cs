@@ -42,7 +42,7 @@ namespace MicTools
             {
                 case SoundEvent.AudioStart:
                     audioPlaying = true;
-                    audioClip = GetComponent<MicrophoneController>().audioClip;
+                    audioClip = GetComponent<MicrophoneController>().AudioClip;
                     buffer = new float[audioClip.samples];//*audioClip.channels];
                     sampleRate = audioClip.frequency;
                     waitingForAudio = true;
