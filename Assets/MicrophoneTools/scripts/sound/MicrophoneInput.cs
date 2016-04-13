@@ -5,11 +5,11 @@ using MicTools;
 
 namespace MicTools
 {
-    [RequireComponent(typeof(MicrophoneBuffer))]
+    [RequireComponent(typeof(MicrophoneController))]
     [AddComponentMenu("MicrophoneTools/MicrophoneInput")]
     public class MicrophoneInput : MonoBehaviour
     {
-        private MicrophoneBuffer microphoneBuffer;
+        private MicrophoneController microphoneController;
 
         private bool test;
         public float pitch;
@@ -22,7 +22,7 @@ namespace MicTools
 
         void Awake()
         {
-            microphoneBuffer = GetComponent<MicrophoneBuffer>();
+            microphoneController = GetComponent<MicrophoneController>();
         }
 
         public void OnSoundEvent(SoundEvent e)
@@ -30,10 +30,10 @@ namespace MicTools
             switch (e)
             {
                 case SoundEvent.BufferReady:
-                    yin = new Yin(microphoneBuffer.SampleRate, SyllableDetectionAlgorithm.windowSize);
+                    yin = new Yin(microphoneController.SampleRate, SyllableDetectionAlgorithm.windowSize);
                     LogMT.Log("Window Size for Algorithm: " + SyllableDetectionAlgorithm.windowSize);
 
-                    syllableDetectionAlgorithm = new SyllableDetectionAlgorithm(microphoneBuffer.SampleRate);
+                    syllableDetectionAlgorithm = new SyllableDetectionAlgorithm(microphoneController.SampleRate);
                     break;
             }
         }
@@ -70,7 +70,7 @@ namespace MicTools
 
         void Update()
         {
-            float[] window = microphoneBuffer.GetMostRecentSamples(SyllableDetectionAlgorithm.windowSize);
+            float[] window = microphoneController.GetMostRecentSamples(SyllableDetectionAlgorithm.windowSize);
             
             if (yin != null)
                 pitch = yin.getPitch(window);

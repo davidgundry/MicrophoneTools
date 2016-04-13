@@ -9,11 +9,11 @@ namespace MicTools
 {
     /* Much of the interacting with FFT code has been adapted from http://forum.unity3d.com/threads/fft-how-to.253192/*/
 
-    [RequireComponent(typeof(MicrophoneBuffer))]
+    [RequireComponent(typeof(MicrophoneController))]
     [AddComponentMenu("MicrophoneTools/FormantFinder")]
     public class FFTPitchDetector : MonoBehaviour
     {
-        private MicrophoneBuffer microphoneBuffer;
+        private MicrophoneController microphoneController;
 
         private float[] spectrum;
         public float[] Spectrum
@@ -78,7 +78,7 @@ namespace MicTools
         // Init
         void Awake()
         {
-            microphoneBuffer = GetComponent<MicrophoneBuffer>();
+            microphoneController = GetComponent<MicrophoneController>();
 
             arrRe = new float[windowSize];
             arrI = new float[windowSize];
@@ -144,7 +144,7 @@ namespace MicTools
 
         void Update()
         {
-            float[] window = microphoneBuffer.GetMostRecentSamples(windowSize);
+            float[] window = microphoneController.GetMostRecentSamples(windowSize);
             DoFFT(window, 1);//microphoneBuffer.Channels);
             //windowsSoFar++;
 

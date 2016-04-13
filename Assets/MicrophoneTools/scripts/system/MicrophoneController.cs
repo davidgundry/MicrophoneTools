@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityEngine.Audio;
 using MicTools;
+using System;
 
 
 namespace MicTools
@@ -41,9 +42,18 @@ public class MicrophoneController : MonoBehaviour
     public int SampleRate { get { return sampleRate; } }
     private int channels = 0;
     /// <summary>
-    /// The number of channels of the microphone
+    /// The number of audio channels interleaved in microphone data.
     /// </summary>
     public int Channels { get { return channels; } }
+
+    /// <summary>
+    /// The write head of the circular buffer in Buffer. The most recent data preceeds this index,
+    /// non-inclusive.
+    /// </summary>
+    private int bufferPos;
+    private double previousDSPTime;
+    private double deltaDSPTime;
+    private bool waitingForAudio = true;
 
     void Awake()
     {
@@ -91,6 +101,14 @@ public class MicrophoneController : MonoBehaviour
     }
 
     void Update()
+    {
+        MicrophoneConfigurationUpdate();
+        if (listening)
+            BufferTrackingUpdate();
+        previousDSPTime = AudioSettings.dspTime;
+    }
+
+    private void MicrophoneConfigurationUpdate()
     {
         if (microphoneAvailable)
         {
@@ -156,6 +174,38 @@ public class MicrophoneController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Track where we should consider the current position in the AudioClip for accessing samples.
+    /// </summary>
+    private void BufferTrackingUpdate()
+    {
+        deltaDSPTime = (AudioSettings.dspTime - previousDSPTime);
+
+        if (waitingForAudio)
+        {
+            float[] newData = new float[audioClip.samples];
+            audioClip.GetData(newData, 1);
+            for (int i = newData.Length - 1; i >= 0; i--) // going backwards find end
+                //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
+                if (newData[i] != 0)
+                {
+                    bufferPos = 0;
+                    waitingForAudio = false;
+                    gameObject.SendMessage("OnSoundEvent", SoundEvent.BufferReady, SendMessageOptions.DontRequireReceiver);
+                    break;
+                }
+        }
+        else
+        {
+            int samplesPassed = (int)Math.Ceiling(deltaDSPTime * audioClip.frequency);
+            bufferPos = (bufferPos + samplesPassed) % audioClip.samples;
+        }
+    }
+
+    /// <summary>
+    /// Start microphone access and collecting samples. Wait for a SoundEvent.BufferReady signal 
+    /// through OnSoundEvent() before attempting to access sample data.
+    /// </summary>
     private void StartListening()
     {
         if (testClip != null)
@@ -174,9 +224,13 @@ public class MicrophoneController : MonoBehaviour
         LogMT.Log("Audio Channels: " + channels);
 
         listening = true;
+        waitingForAudio = true;
         gameObject.SendMessage("OnSoundEvent", SoundEvent.AudioStart, SendMessageOptions.DontRequireReceiver);
     }
 
+    /// <summary>
+    /// End microphone access.
+    /// </summary>
     private void StopListening()
     {
         if (testClip == null)
@@ -276,6 +330,24 @@ public class MicrophoneController : MonoBehaviour
     }
 
     /// <summary>
+    /// Return the n most recent samples from the AudioClip.
+    /// </summary>
+    /// <param name="count">The number of samples to fetch</param>
+    /// <returns>Array of length provided of samples, -1 to 1</returns>
+    public float[] GetMostRecentSamples(int count)
+    {
+        if (count > audioClip.samples)
+            throw new ArgumentOutOfRangeException("Samples requested exceeds size of AudioClip.");
+        if (count < 0)
+            throw new ArgumentOutOfRangeException("Cannot fetch a negative number of samples.");
+
+        float[] newSamples = new float[count];
+
+        audioClip.GetData(newSamples, (bufferPos - count) % audioClip.samples);
+        return newSamples;
+    }
+
+    /// <summary>
     /// Will set the sampling rate to the default, or the highest available from the microphone if
     /// this is lower than the default
     /// </summary>
@@ -292,6 +364,28 @@ public class MicrophoneController : MonoBehaviour
         LogMT.Log("MicrophoneController: Sampling rate: " + sampleRate);
     }
 
+
+    /// <summary>
+    /// Encode an array of floats into 16-bit PCM
+    /// </summary>
+    /// <param name="data">An array of audio samples</param>
+    /// <returns></returns>
+    private static byte[] EncodeFloatBlockToRawAudioBytes(float[] data)
+    {
+        byte[] bytes = new byte[data.Length * 2];
+        int rescaleFactor = 32767;
+
+        for (int i = 0; i < data.Length; i++)
+        {
+            short intData;
+            intData = (short)(data[i] * rescaleFactor);
+            byte[] byteArr = new byte[2];
+            byteArr = BitConverter.GetBytes(intData);
+            byteArr.CopyTo(bytes, i * 2);
+        }
+
+        return bytes;
+    }
 
 }
 }
