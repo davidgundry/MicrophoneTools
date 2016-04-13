@@ -158,50 +158,6 @@ public class SyllableDetectionAlgorithm
         return normalised;
     }
 
-    /*private void DetectPresence()
-    {
-        if (level > noiseIntensity * presenceMultiple)
-        {
-            if (!inputDetected)
-            {
-                inputDetected = true;
-                gameObject.SendMessage("OnSoundEvent", SoundEvent.InputStart, SendMessageOptions.DontRequireReceiver);
-                inputDetectionTimeout = 10;         // Having a short timeout gets rid of some of the noise
-            }
-        }
-        else if (inputDetectionTimeout == 0)
-        {
-            if (inputDetected)
-            {
-                inputDetected = false;
-                gameObject.SendMessage("OnSoundEvent", SoundEvent.InputEnd, SendMessageOptions.DontRequireReceiver);
-            }
-        }
-        else
-            inputDetectionTimeout--;
-    }*/
-
-    /*private void DetectSyllables()
-    {
-        if (level > noiseIntensity + standardDeviation/2)//* highActivationMultiple))
-        {
-            if (!syllable)
-            {
-                gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllableStart, SendMessageOptions.DontRequireReceiver);
-                syllable = true;
-            }
-        }
-
-        if (level < noiseIntensity + standardDeviation/2)//* deactivationMultiple))
-        {
-            if (syllable)
-            {
-                syllable = false;
-                gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllableEnd, SendMessageOptions.DontRequireReceiver);
-            }
-        }
-    }*/
-
     private static float Peak(float[] data)
     {
         float levelMax = 0;
