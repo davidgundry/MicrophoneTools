@@ -1507,12 +1507,11 @@ GameObject:
   m_Component:
   - 4: {fileID: 1523735795}
   - 114: {fileID: 1523735794}
+  - 114: {fileID: 1523735797}
   - 114: {fileID: 1523735801}
   - 114: {fileID: 1523735798}
   - 20: {fileID: 1523735799}
   - 114: {fileID: 1523735803}
-  - 114: {fileID: 1523735797}
-  - 114: {fileID: 1523735796}
   m_Layer: 0
   m_Name: GameController
   m_TagString: Untagged
@@ -1550,17 +1549,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
---- !u!114 &1523735796
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1523735793}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07826fb95f18e604fb9f3f49c38afb38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1523735797
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1573,10 +1561,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
+  logAudioData: 0
   testClip: {fileID: 0}
-  sampleRate: 44100
-  channels: 0
-  audioClip: {fileID: 0}
 --- !u!114 &1523735798
 MonoBehaviour:
   m_ObjectHideFlags: 0

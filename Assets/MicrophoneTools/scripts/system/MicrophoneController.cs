@@ -9,12 +9,23 @@ namespace MicTools
 {
 /// <summary>
 /// A MonoBehaviour to control detecting, configuring, starting and stopping the microphone. When
-/// the microphone is active, provides an AudioClip with microphone data.
+/// the microphone is active, provides an AudioClip with microphone data. Also provides methods
+/// to access the latest samples from the microphone.
 /// </summary>
 [AddComponentMenu("MicrophoneTools/MicrophoneController")]
 public class MicrophoneController : MonoBehaviour
 {
+    /// <summary>
+    /// Controls whether to start or stop the microphone.
+    /// </summary>
     public bool microphoneActive = false;
+    /// <summary>
+    /// Controls whether to log all incoming audio samples with LogMT
+    /// </summary>
+    public bool logAudioData = false;
+    /// <summary>
+    /// A clip to play in place of microphone input.
+    /// </summary>
     public AudioClip testClip;
 
     private MicrophoneUI microphoneUI;
@@ -102,12 +113,31 @@ public class MicrophoneController : MonoBehaviour
 
     void Update()
     {
-        MicrophoneConfigurationUpdate();
+        if (microphoneDeviceSet)
+        {
+            if (microphoneActive)
+                MicrophoneUpdate();
+            else if (listening) // If we're listening, but the microphone shouldn't be active
+                StopListening();
+        }
+        else if (microphoneActive) // If the microphone should be active, but it is not configured
+        {
+            LogMT.LogWarning("MicrophoneController: Microphone active yet no microphone device set!");
+            microphoneActive = false;
+        }
+
         if (listening)
             BufferTrackingUpdate();
+        else
+            MicrophoneConfigurationUpdate();
+
         previousDSPTime = AudioSettings.dspTime;
     }
 
+    /// <summary>
+    /// Watch for changes in microphone configuration status, possibly due to user interaction, and
+    /// configure appropriately
+    /// </summary>
     private void MicrophoneConfigurationUpdate()
     {
         if (microphoneAvailable)
@@ -152,25 +182,6 @@ public class MicrophoneController : MonoBehaviour
                     authorizationRequestSent = true;
                 }
             }
-            else if (microphoneDeviceSet)
-            {
-                if (microphoneActive)
-                    MicrophoneUpdate();
-                else
-                {
-                    if ((listening))
-                        StopListening();
-                }
-            }
-        }
-
-        if (!microphoneDeviceSet)
-        {
-            if (microphoneActive)
-            {
-                LogMT.LogWarning("MicrophoneController: Microphone active yet no microphone device set!");
-                microphoneActive = false;
-            }
         }
     }
 
@@ -184,7 +195,7 @@ public class MicrophoneController : MonoBehaviour
         if (waitingForAudio)
         {
             float[] newData = new float[audioClip.samples];
-            audioClip.GetData(newData, 1);
+            audioClip.GetData(newData, 0);
             for (int i = newData.Length - 1; i >= 0; i--) // going backwards find end
                 //for (int i=0;i<buffer.Length;i++) // going forwards, find beginning
                 if (newData[i] != 0)
@@ -199,6 +210,13 @@ public class MicrophoneController : MonoBehaviour
         {
             int samplesPassed = (int)Math.Ceiling(deltaDSPTime * audioClip.frequency);
             bufferPos = (bufferPos + samplesPassed) % audioClip.samples;
+
+            if (logAudioData)
+            {
+                float[] newData = new float[samplesPassed];
+                audioClip.GetData(newData, bufferPos);
+                LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockTo16BitPCM(newData));
+            }
         }
     }
 
@@ -336,6 +354,8 @@ public class MicrophoneController : MonoBehaviour
     /// <returns>Array of length provided of samples, -1 to 1</returns>
     public float[] GetMostRecentSamples(int count)
     {
+        if (audioClip == null)
+            return new float[count];
         if (count > audioClip.samples)
             throw new ArgumentOutOfRangeException("Samples requested exceeds size of AudioClip.");
         if (count < 0)
@@ -343,7 +363,10 @@ public class MicrophoneController : MonoBehaviour
 
         float[] newSamples = new float[count];
 
-        audioClip.GetData(newSamples, (bufferPos - count) % audioClip.samples);
+        int offset = (bufferPos - count) % audioClip.samples;
+        if (offset < 0)
+            offset += audioClip.samples;
+        audioClip.GetData(newSamples, offset);
         return newSamples;
     }
 
@@ -370,7 +393,7 @@ public class MicrophoneController : MonoBehaviour
     /// </summary>
     /// <param name="data">An array of audio samples</param>
     /// <returns></returns>
-    private static byte[] EncodeFloatBlockToRawAudioBytes(float[] data)
+    public static byte[] EncodeFloatBlockTo16BitPCM(float[] data)
     {
         byte[] bytes = new byte[data.Length * 2];
         int rescaleFactor = 32767;
