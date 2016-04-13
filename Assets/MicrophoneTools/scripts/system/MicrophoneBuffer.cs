@@ -5,16 +5,19 @@ using System;
 
 namespace MicTools
 {
+/// <summary>
+/// Watches AudioClip provided by MicrohoneController and provides access to the latest samples
+/// </summary>
 [RequireComponent(typeof(MicrophoneController))]
 [AddComponentMenu("MicrophoneTools/MicrophoneBuffer")]
 public class MicrophoneBuffer : MonoBehaviour
 {
-    private float[] buffer = new float[0];
+    /*private float[] buffer = new float[0];
     /// <summary>
     /// An array of floats between -1 and 1 representing audio samples. This is a circular buffer,
     /// the write head is BufferPos
     /// </summary>
-    public float[] Buffer { get { return buffer; } }
+    public float[] Buffer { get { return buffer; } }*/
 
     private int bufferPos;
     /// <summary>
@@ -48,7 +51,7 @@ public class MicrophoneBuffer : MonoBehaviour
             case SoundEvent.AudioStart:
                 audioPlaying = true;
                 audioClip = GetComponent<MicrophoneController>().AudioClip;
-                buffer = new float[audioClip.samples];//*audioClip.channels];
+                //buffer = new float[audioClip.samples];//*audioClip.channels];
                 sampleRate = audioClip.frequency;
                 waitingForAudio = true;
                 break;
@@ -81,25 +84,25 @@ public class MicrophoneBuffer : MonoBehaviour
             }
             else
             {
-                int samplesPassed = (int)Math.Ceiling(deltaDSPTime * audioClip.frequency);
+                int samplesPassed = (int) Math.Ceiling(deltaDSPTime * audioClip.frequency);
                 if (samplesPassed > 0)
                 {
-                    float[] newData = new float[samplesPassed];
+                    /*float[] newData = new float[samplesPassed];
                     audioClip.GetData(newData, bufferPos);
 
                     LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockToRawAudioBytes(newData));
 
                     if (bufferPos + samplesPassed < buffer.Length)
-                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), samplesPassed * sizeof(float));
+                        System.Array.Copy(newData, 0, buffer, bufferPos, samplesPassed);
                     else
                     {
                         int firstSamples = buffer.Length - bufferPos;
                         int secondSamples = samplesPassed - firstSamples;
-                        System.Buffer.BlockCopy(newData, 0, buffer, bufferPos * sizeof(float), firstSamples * sizeof(float));
+                        System.Array.Copy(newData, 0, buffer, bufferPos, firstSamples);
                         System.Array.Copy(newData, firstSamples, buffer, 0, secondSamples);
-                    }
+                    }*/
 
-                    bufferPos = (bufferPos + samplesPassed) % buffer.Length;
+                    bufferPos = (bufferPos + samplesPassed) % audioClip.samples;
                 }
             }
         }
@@ -131,20 +134,20 @@ public class MicrophoneBuffer : MonoBehaviour
 
 
     /// <summary>
-    /// Return the n most recent samples in the buffer.
+    /// Return the n most recent samples from the AudioClip.
     /// </summary>
     /// <param name="count">The number of samples to fetch</param>
     /// <returns>Array of length provided of samples, -1 to 1</returns>
     public float[] GetMostRecentSamples(int count)
     {
-        if (count > buffer.Length)
-            throw new ArgumentOutOfRangeException("Samples requested exceeds size of buffer.");
+        if (count > audioClip.samples)
+            throw new ArgumentOutOfRangeException("Samples requested exceeds size of AudioClip.");
         if (count < 0)
-            throw new ArgumentOutOfRangeException("Cannot fetch negative samples from buffer.");
+            throw new ArgumentOutOfRangeException("Cannot fetch a negative number of samples.");
 
         float[] newSamples = new float[count];
 
-        if (buffer.Length > 0)
+        /*if (buffer.Length > 0)
         {
             if (bufferPos - count >= 0)
                 System.Array.Copy(buffer, (bufferPos - count), newSamples, 0, count);
@@ -156,7 +159,9 @@ public class MicrophoneBuffer : MonoBehaviour
                 System.Array.Copy(buffer, 0, newSamples, tailSamples, headSamples);
                 System.Array.Copy(buffer, tailStart, newSamples, 0, tailSamples);
             }
-        }
+        }*/
+
+        audioClip.GetData(newSamples, (bufferPos - count) % audioClip.samples);
         return newSamples;
     }
 }

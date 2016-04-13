@@ -6,6 +6,10 @@ using MicTools;
 
 namespace MicTools
 {
+/// <summary>
+/// A MonoBehaviour to control detecting, configuring, starting and stopping the microphone. When
+/// the microphone is active, provides an AudioClip with microphone data.
+/// </summary>
 [AddComponentMenu("MicrophoneTools/MicrophoneController")]
 public class MicrophoneController : MonoBehaviour
 {
