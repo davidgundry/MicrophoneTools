@@ -13,6 +13,8 @@ public class Launcher : MonoBehaviour {
         {
             Destroy(gameObject);
         }
+
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
     }
 
     void Start()

@@ -76,7 +76,6 @@ public class MicrophoneController : MonoBehaviour
 
     void Awake()
     {
-        Screen.sleepTimeout = SleepTimeout.NeverSleep;
         microphoneUI = transform.GetComponent<MicrophoneUI>();
         if (microphoneUI != null)
             prewarned = !microphoneUI.AskPermission();
@@ -86,7 +85,7 @@ public class MicrophoneController : MonoBehaviour
             prewarned = true;
         }
 
-        if (FindObjectOfType<AudioListener>() == null)
+        /*if (FindObjectOfType<AudioListener>() == null)
         {
             LogMT.LogWarning("MicrophoneController: No AudioListener found, creating one");
             GameObject audioListener = new GameObject();
@@ -96,7 +95,7 @@ public class MicrophoneController : MonoBehaviour
 
         AudioMixer audioMixer = Resources.Load("MicrophoneToolsMixer") as AudioMixer;
         if (audioMixer == null)
-            LogMT.LogError("MicrophoneController: Could not find Audio Mixer");
+            LogMT.LogError("MicrophoneController: Could not find Audio Mixer");*/
     }
 
     /// <summary>
