@@ -478,7 +478,6 @@ GameObject:
   - 114: {fileID: 331132033}
   - 114: {fileID: 331132036}
   - 114: {fileID: 331132038}
-  - 114: {fileID: 331132037}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -508,8 +507,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  matZOn: {fileID: 2100000, guid: 6f1c46bfb7e8ebe4aab472c2ab12af25, type: 2}
-  matZOff: {fileID: 2100000, guid: 6f1c46bfb7e8ebe4aab472c2ab12af25, type: 2}
+  matZOn: {fileID: 2100000, guid: 82f969d76bcd1b74c8631cfe0d203f16, type: 2}
+  matZOff: {fileID: 2100000, guid: 82f969d76bcd1b74c8631cfe0d203f16, type: 2}
   toggleKey: 0
   displayLines: 1
   displayGizmos: 1
@@ -558,19 +557,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01bd64cd52edf504e945f00ea9c8cd8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  syllables: 0
   pitch: 0
---- !u!114 &331132037
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 331132032}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 07826fb95f18e604fb9f3f49c38afb38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &331132038
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -583,10 +570,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
+  logAudioData: 0
   testClip: {fileID: 0}
-  sampleRate: 44100
-  channels: 0
-  audioClip: {fileID: 0}
+  saveDirectory: MicrophoneTools
+  filesuffix: 
 --- !u!4 &331132040
 Transform:
   m_ObjectHideFlags: 0
