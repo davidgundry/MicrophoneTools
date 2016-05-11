@@ -19,7 +19,7 @@ public class MicrophoneController : MonoBehaviour
     /// <summary>
     /// Controls whether to start or stop the microphone.
     /// </summary>
-    public bool microphoneActive = false;
+    public bool microphoneActive;
     /// <summary>
     /// Controls whether to log all incoming audio samples with LogMT
     /// </summary>
@@ -130,7 +130,7 @@ public class MicrophoneController : MonoBehaviour
         else if (microphoneActive) // If the microphone should be active, but it is not configured
         {
             LogMT.LogWarning("MicrophoneController: Microphone active yet no microphone device set!");
-            microphoneActive = false;
+            //microphoneActive = false;
         }
 
         if (listening)
