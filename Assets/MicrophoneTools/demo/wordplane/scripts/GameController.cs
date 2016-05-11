@@ -121,25 +121,25 @@ namespace WordPlane
         public void TakeOff()
         {
             lastTakeoffX = player.position.x;
-            TelemetryTools.Telemetry.Instance.SendEvent("Takeoff");
+            TelemetryTools.Telemetry.SendEventIfExists("Takeoff");
         }
 
         public void EnterRunway()
         {
             lastTakeoffX = player.position.x;
             distance = 0;
-            TelemetryTools.Telemetry.Instance.SendEvent("Enter Runway");
+            TelemetryTools.Telemetry.SendEventIfExists("Enter Runway");
         }
 
         public void RunwayCheckpoint()
         {
             lastTakeoffX = player.position.x;
-            TelemetryTools.Telemetry.Instance.SendEvent("Runway Checkpoint");
+            TelemetryTools.Telemetry.SendEventIfExists("Runway Checkpoint");
         }
 
         public void FlyingStart()
         {
-            TelemetryTools.Telemetry.Instance.SendEvent("Flying Start");
+            TelemetryTools.Telemetry.SendEventIfExists("Flying Start");
         }
 
         public void TouchDown()
@@ -149,7 +149,7 @@ namespace WordPlane
                 NewBestDistance((int)distance * 5);
 
             AddRunway(10);
-            TelemetryTools.Telemetry.Instance.SendEvent("Touch Down");
+            TelemetryTools.Telemetry.SendEventIfExists("Touch Down");
             playerBehaviour.speedMultiplier = 1;
         }
 
