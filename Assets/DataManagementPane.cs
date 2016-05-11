@@ -10,11 +10,11 @@ namespace TelemetryTools
         public Text infoText;
         public Text URLInputText;
         private TelemetryMonitor telemetryMonitor;
+        public TelemetryMonitor telemetryMonitorPrefab;
 
 	    // Use this for initialization
 	    void Start () {
             Screen.orientation = ScreenOrientation.Portrait;
-            telemetryMonitor = GameObject.FindObjectOfType<TelemetryMonitor>();
 	    }
 
         void OnEnable()
@@ -83,9 +83,17 @@ namespace TelemetryTools
 
         public void UploadButtonToggle()
         {
-            telemetryMonitor.gameObject.SetActive(true);
-            TelemetryTools.Telemetry.Instance.HTTPPostEnabled = !TelemetryTools.Telemetry.Instance.HTTPPostEnabled;
-            infoText.text = MakeText();
+            if (telemetryMonitor != null)
+            {
+                telemetryMonitor.gameObject.SetActive(true);
+                TelemetryTools.Telemetry.Instance.HTTPPostEnabled = !TelemetryTools.Telemetry.Instance.HTTPPostEnabled;
+                infoText.text = MakeText();
+            }
+        }
+
+        public void EnableButton()
+        {
+            telemetryMonitor = Instantiate<TelemetryMonitor>(telemetryMonitorPrefab);
         }
     }
 }

@@ -1563,6 +1563,8 @@ MonoBehaviour:
   microphoneActive: 1
   logAudioData: 0
   testClip: {fileID: 0}
+  saveDirectory: MicrophoneTools
+  filesuffix: 
 --- !u!114 &1523735798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1631,8 +1633,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5609037fecbeef469c63c61ae3741ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  matZOn: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
-  matZOff: {fileID: 2100000, guid: 9a7681ad5605bde4487735bdec684926, type: 2}
+  matZOn: {fileID: 2100000, guid: 4e605bd6af78bf749a29093ca1e196b7, type: 2}
+  matZOff: {fileID: 2100000, guid: af1353f58e9dad148a93ee9c9e28b3e7, type: 2}
   toggleKey: 118
   displayLines: 1
   displayGizmos: 1

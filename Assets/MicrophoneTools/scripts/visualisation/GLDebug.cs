@@ -70,10 +70,10 @@ namespace MicTools
 
         void SetMaterial()
         {
-            matZOn.hideFlags = HideFlags.HideAndDontSave;
-            matZOn.shader.hideFlags = HideFlags.HideAndDontSave;
-            matZOff.hideFlags = HideFlags.HideAndDontSave;
-            matZOff.shader.hideFlags = HideFlags.HideAndDontSave;
+            //matZOn.hideFlags = HideFlags.HideAndDontSave;
+            //matZOn.shader.hideFlags = HideFlags.HideAndDontSave;
+           // matZOff.hideFlags = HideFlags.HideAndDontSave;
+           // matZOff.shader.hideFlags = HideFlags.HideAndDontSave;
         }
 
         void Update()
