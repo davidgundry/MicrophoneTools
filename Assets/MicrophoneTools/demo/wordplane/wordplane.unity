@@ -1561,7 +1561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
-  logAudioData: 0
+  logAudioData: 1
   testClip: {fileID: 0}
   saveDirectory: MicrophoneTools
   filesuffix: 
@@ -1622,6 +1622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pitch: 0
+  syllableCount: 0
 --- !u!114 &1523735803
 MonoBehaviour:
   m_ObjectHideFlags: 0

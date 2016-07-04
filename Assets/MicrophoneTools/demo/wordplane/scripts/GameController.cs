@@ -73,6 +73,8 @@ namespace WordPlane
 
             //HumInput();
 
+            playerBehaviour.AddForceFromMicrophoneLevel(microphoneInput.Level);
+
             if (Input.GetKey("space"))
                 InputEvent();
             if (Input.GetKeyDown("c"))
@@ -155,7 +157,7 @@ namespace WordPlane
 
         public void InputEvent()
         {
-            playerBehaviour.Thrust();
+           // playerBehaviour.Thrust();
             //stimulusScript.newInput = true;
         }
 

@@ -220,9 +220,12 @@ public class MicrophoneController : MonoBehaviour
 
             if (logAudioData)
             {
-                float[] newData = new float[samplesPassed];
-                audioClip.GetData(newData, bufferPos);
-                LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockTo16BitPCM(newData));
+                if (samplesPassed > 0)
+                {
+                    float[] newData = new float[samplesPassed];
+                    audioClip.GetData(newData, bufferPos);
+                    LogMT.SendByteDataBase64("MTaudio", EncodeFloatBlockTo16BitPCM(newData));
+                }
             }
         }
     }

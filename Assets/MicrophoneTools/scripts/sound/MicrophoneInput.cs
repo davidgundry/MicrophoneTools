@@ -10,6 +10,7 @@ namespace MicTools
 public class MicrophoneInput : MonoBehaviour
 {
     public float pitch;
+    public int syllableCount;
 
     private MicrophoneController microphoneController;
     private Yin yin;
@@ -53,6 +54,7 @@ public class MicrophoneInput : MonoBehaviour
             if (syllableDetectionAlgorithm.Run(window, Time.deltaTime))
             {
                 gameObject.SendMessage("OnSoundEvent", SoundEvent.SyllablePeak, SendMessageOptions.DontRequireReceiver);
+                syllableCount++;
             }
     }
 

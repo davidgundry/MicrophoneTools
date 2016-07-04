@@ -88,6 +88,7 @@ namespace TelemetryTools
                 telemetryMonitor.gameObject.SetActive(true);
                 TelemetryTools.Telemetry.Instance.HTTPPostEnabled = !TelemetryTools.Telemetry.Instance.HTTPPostEnabled;
                 infoText.text = MakeText();
+                telemetryMonitor.ChangeKey();
             }
         }
 

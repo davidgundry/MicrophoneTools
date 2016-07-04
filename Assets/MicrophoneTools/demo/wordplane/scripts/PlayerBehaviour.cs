@@ -153,6 +153,12 @@ namespace WordPlane
             rb.AddForce(new Vector2(0, lift) * Time.deltaTime);
         }
 
+        public void AddForceFromMicrophoneLevel(float level)
+        {
+            if (level > 0.005f)
+                rb.AddForce(new Vector2(Mathf.Sqrt(level * 10000), 0) * 50 * speedMultiplier * Time.deltaTime);
+        }
+
         private void AddActiveForces()
         {
             if (forceTime > 0)
