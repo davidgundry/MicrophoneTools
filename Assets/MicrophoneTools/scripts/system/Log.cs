@@ -20,7 +20,7 @@ namespace MicTools
 
     public class LogMT
     {
-        private const bool mtLoggingOn = true;
+        private const bool mtLoggingOn = false;
 
         public static void Log(string text)
         {

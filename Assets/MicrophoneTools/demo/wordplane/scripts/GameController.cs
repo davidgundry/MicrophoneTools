@@ -52,6 +52,7 @@ namespace WordPlane
                 TelemetryTools.Telemetry.Instance.SendStreamValue("lvl", microphoneInput.Level);
                 TelemetryTools.Telemetry.Instance.SendStreamValue("x", player.position.x);
                 TelemetryTools.Telemetry.Instance.SendStreamValue("y", player.position.y);
+                TelemetryTools.Telemetry.Instance.SendStreamValue("pch", microphoneInput.pitch);
             }
 
             if ((playerBehaviour.PlayerState == PlayerState.Flying) || (playerBehaviour.PlayerState == PlayerState.TakingOff) || (playerBehaviour.PlayerState == PlayerState.Landing))

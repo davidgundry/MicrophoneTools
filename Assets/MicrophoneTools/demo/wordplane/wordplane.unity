@@ -1561,8 +1561,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   microphoneActive: 1
-  logAudioData: 1
-  testClip: {fileID: 0}
+  logAudioData: 0
+  testClip: {fileID: 8300000, guid: b7335c419d47273459ec3444de66fa86, type: 3}
   saveDirectory: MicrophoneTools
   filesuffix: 
 --- !u!114 &1523735798

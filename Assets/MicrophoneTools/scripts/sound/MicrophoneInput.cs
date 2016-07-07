@@ -70,20 +70,29 @@ public class MicrophoneInput : MonoBehaviour
         int syllables = 0;
         if (testClip != null)
         {
-            int length = SyllableDetectionAlgorithm.windowSize;
-            float[] samples = new float[length];
+            float[] samples = new float[SyllableDetectionAlgorithm.windowSize];
 
-            if (testClip != null)
-                for (int i = 0; i < testClip.samples; i += length)
-                {
-                    if (i + length > testClip.samples)
-                        samples = new float[testClip.samples - i];
+            for (int offset = 0; offset < testClip.samples; offset += SyllableDetectionAlgorithm.windowSize)
+            {
+                if (offset + SyllableDetectionAlgorithm.windowSize > testClip.samples)
+                    samples = new float[testClip.samples - offset];
 
-                    testClip.GetData(samples, i);
-                    if (testSDA.Run(samples, samples.Length / testClip.frequency))
-                        syllables++;
-                }
-        }
+                testClip.GetData(samples, offset);
+                if (testSDA.Run(samples, ((float) samples.Length) / ((float) testClip.frequency )))
+                    syllables++;
+            }
+           
+
+            /*for (int i = 0; i < testClip.samples; i += length)
+            {
+                if (i + length > testClip.samples)
+                    samples = new float[testClip.samples - i];
+
+                testClip.GetData(samples, i);
+                if (testSDA.Run(samples, samples.Length / testClip.frequency))
+                    syllables++;
+            }*/
+    }
         else
             throw new ArgumentNullException("Cannot test Microphone Input without a test clip.");
 
